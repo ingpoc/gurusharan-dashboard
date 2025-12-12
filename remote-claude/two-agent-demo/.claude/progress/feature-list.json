@@ -1,0 +1,739 @@
+{
+  "project": {
+    "name": "CLI Todo App",
+    "description": "Minimal command-line todo application demonstrating two-agent harness pattern",
+    "version": "1.0.0",
+    "technology_stack": ["Python 3.9+", "argparse", "JSON", "pytest"],
+    "timeline": "10-minute demo scope"
+  },
+  "categories": {
+    "infrastructure": {
+      "priority": "critical",
+      "description": "Project setup and environment configuration",
+      "features": [
+        {
+          "id": "INFRA-001",
+          "name": "Project Structure Setup",
+          "description": "Create basic project directory structure and configuration files",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": [],
+          "subtasks": [
+            "Create root project directory structure",
+            "Add .gitignore for Python projects",
+            "Create requirements.txt for dependencies",
+            "Set up virtual environment configuration",
+            "Add .editorconfig for consistent coding style"
+          ]
+        },
+        {
+          "id": "INFRA-002",
+          "name": "Development Environment",
+          "description": "Set up development tools and scripts",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["INFRA-001"],
+          "subtasks": [
+            "Create init.sh for environment initialization",
+            "Add pre-commit hooks configuration",
+            "Set up pytest configuration",
+            "Create Makefile for common tasks",
+            "Add development dependencies to requirements-dev.txt"
+          ]
+        }
+      ]
+    },
+    "core_data_structures": {
+      "priority": "critical",
+      "description": "Core data models and storage mechanisms",
+      "features": [
+        {
+          "id": "DATA-001",
+          "name": "Task Data Model",
+          "description": "Define the Task object structure and validation",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["INFRA-001"],
+          "subtasks": [
+            "Define Task class/dict structure with id, text, completed fields",
+            "Add timestamp for task creation",
+            "Implement task validation logic",
+            "Add helper methods for task serialization",
+            "Create task factory function"
+          ]
+        },
+        {
+          "id": "DATA-002",
+          "name": "JSON File Storage",
+          "description": "Implement JSON-based persistence layer",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["DATA-001"],
+          "subtasks": [
+            "Create save_tasks() function to write JSON",
+            "Implement load_tasks() function to read JSON",
+            "Add file path configuration (todos.json default)",
+            "Handle file not found scenarios gracefully",
+            "Add JSON parsing error handling",
+            "Implement atomic file writes to prevent corruption",
+            "Add backup mechanism for data safety"
+          ]
+        },
+        {
+          "id": "DATA-003",
+          "name": "Task ID Management",
+          "description": "Implement unique task ID generation and tracking",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["DATA-001"],
+          "subtasks": [
+            "Implement auto-incrementing ID system",
+            "Add ID validation logic",
+            "Create function to get next available ID",
+            "Handle ID persistence across sessions",
+            "Add ID collision detection"
+          ]
+        }
+      ]
+    },
+    "task_operations": {
+      "priority": "critical",
+      "description": "Core task management operations",
+      "features": [
+        {
+          "id": "TASK-001",
+          "name": "Add Task Functionality",
+          "description": "Implement ability to create and save new tasks",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["DATA-001", "DATA-002"],
+          "subtasks": [
+            "Create add_task(text) function",
+            "Generate unique task ID",
+            "Set default completed status to False",
+            "Add timestamp to new task",
+            "Validate task text is not empty",
+            "Handle duplicate task detection (optional)",
+            "Return success/failure status",
+            "Integrate with save_tasks()"
+          ]
+        },
+        {
+          "id": "TASK-002",
+          "name": "List Tasks Functionality",
+          "description": "Display all tasks with proper formatting",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["DATA-002"],
+          "subtasks": [
+            "Create list_tasks() function",
+            "Load tasks from storage",
+            "Format task display with checkboxes [✓] and [ ]",
+            "Show task numbers/IDs",
+            "Display task text",
+            "Handle empty task list gracefully",
+            "Sort tasks by ID (or creation time)",
+            "Add total task count summary"
+          ]
+        },
+        {
+          "id": "TASK-003",
+          "name": "Complete Task Functionality",
+          "description": "Mark tasks as completed",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["DATA-002", "DATA-003"],
+          "subtasks": [
+            "Create complete_task(task_id) function",
+            "Load current tasks from storage",
+            "Find task by ID",
+            "Validate task ID exists",
+            "Update completed status to True",
+            "Add completion timestamp",
+            "Save updated tasks",
+            "Return success/failure feedback",
+            "Handle invalid task ID errors"
+          ]
+        },
+        {
+          "id": "TASK-004",
+          "name": "Task Validation",
+          "description": "Input validation and error handling for task operations",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["TASK-001", "TASK-002", "TASK-003"],
+          "subtasks": [
+            "Validate task text length limits",
+            "Check for empty or whitespace-only tasks",
+            "Validate task ID format",
+            "Add input sanitization",
+            "Create custom exception classes",
+            "Implement error message formatting"
+          ]
+        }
+      ]
+    },
+    "cli_interface": {
+      "priority": "critical",
+      "description": "Command-line interface and argument parsing",
+      "features": [
+        {
+          "id": "CLI-001",
+          "name": "Argument Parser Setup",
+          "description": "Set up argparse or command-line parsing",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["INFRA-001"],
+          "subtasks": [
+            "Import and configure argparse",
+            "Define main command structure",
+            "Add subparsers for add/list/done commands",
+            "Set up argument descriptions",
+            "Configure help text formatting",
+            "Add version argument"
+          ]
+        },
+        {
+          "id": "CLI-002",
+          "name": "Add Command Implementation",
+          "description": "Wire up 'todo add' command to backend",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["CLI-001", "TASK-001"],
+          "subtasks": [
+            "Create add command parser",
+            "Accept task text as argument",
+            "Handle quoted strings properly",
+            "Call add_task() function",
+            "Display success message",
+            "Show error messages for failures",
+            "Add usage examples to help text"
+          ]
+        },
+        {
+          "id": "CLI-003",
+          "name": "List Command Implementation",
+          "description": "Wire up 'todo list' command to backend",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["CLI-001", "TASK-002"],
+          "subtasks": [
+            "Create list command parser",
+            "Call list_tasks() function",
+            "Format and print output",
+            "Handle empty list case",
+            "Add color coding for completed vs pending (optional)",
+            "Add usage examples to help text"
+          ]
+        },
+        {
+          "id": "CLI-004",
+          "name": "Done Command Implementation",
+          "description": "Wire up 'todo done' command to backend",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["CLI-001", "TASK-003"],
+          "subtasks": [
+            "Create done command parser",
+            "Accept task ID as argument",
+            "Validate ID is numeric",
+            "Call complete_task() function",
+            "Display success message with task details",
+            "Show error for invalid IDs",
+            "Add usage examples to help text"
+          ]
+        },
+        {
+          "id": "CLI-005",
+          "name": "Main Entry Point",
+          "description": "Create main() function and script execution",
+          "status": "pending",
+          "priority": "critical",
+          "dependencies": ["CLI-002", "CLI-003", "CLI-004"],
+          "subtasks": [
+            "Create main() function",
+            "Add if __name__ == '__main__' block",
+            "Parse command-line arguments",
+            "Route to appropriate command handler",
+            "Implement graceful error handling",
+            "Add exit codes for success/failure",
+            "Handle keyboard interrupt (Ctrl+C)"
+          ]
+        },
+        {
+          "id": "CLI-006",
+          "name": "Help and Usage Documentation",
+          "description": "Comprehensive help text and usage examples",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["CLI-001"],
+          "subtasks": [
+            "Write main help text",
+            "Add command descriptions",
+            "Include usage examples",
+            "Document available options",
+            "Add epilog with examples",
+            "Create --help output"
+          ]
+        }
+      ]
+    },
+    "error_handling": {
+      "priority": "high",
+      "description": "Robust error handling and user feedback",
+      "features": [
+        {
+          "id": "ERROR-001",
+          "name": "File System Error Handling",
+          "description": "Handle file I/O errors gracefully",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["DATA-002"],
+          "subtasks": [
+            "Handle permission denied errors",
+            "Catch file not found exceptions",
+            "Handle disk full scenarios",
+            "Add retry logic for transient failures",
+            "Create user-friendly error messages",
+            "Log errors for debugging"
+          ]
+        },
+        {
+          "id": "ERROR-002",
+          "name": "Data Validation Errors",
+          "description": "Handle invalid data and user input",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["TASK-004"],
+          "subtasks": [
+            "Handle JSON parsing errors",
+            "Validate data structure integrity",
+            "Catch malformed data files",
+            "Provide recovery suggestions",
+            "Add data migration for old formats",
+            "Create validation error messages"
+          ]
+        },
+        {
+          "id": "ERROR-003",
+          "name": "User Input Error Handling",
+          "description": "Handle invalid command-line arguments",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["CLI-005"],
+          "subtasks": [
+            "Handle missing arguments",
+            "Validate argument types",
+            "Catch invalid task IDs",
+            "Handle out-of-range IDs",
+            "Show helpful suggestions",
+            "Display usage examples on errors"
+          ]
+        }
+      ]
+    },
+    "testing": {
+      "priority": "high",
+      "description": "Automated testing and quality assurance",
+      "features": [
+        {
+          "id": "TEST-001",
+          "name": "Unit Tests for Data Layer",
+          "description": "Test data models and storage functions",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["DATA-001", "DATA-002"],
+          "subtasks": [
+            "Test task creation and validation",
+            "Test save_tasks() function",
+            "Test load_tasks() function",
+            "Test file not found handling",
+            "Test JSON parsing errors",
+            "Test data integrity",
+            "Add fixtures for test data",
+            "Mock file system operations"
+          ]
+        },
+        {
+          "id": "TEST-002",
+          "name": "Unit Tests for Task Operations",
+          "description": "Test add, list, and complete functionality",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["TASK-001", "TASK-002", "TASK-003"],
+          "subtasks": [
+            "Test add_task() with valid input",
+            "Test add_task() with invalid input",
+            "Test list_tasks() with empty list",
+            "Test list_tasks() with multiple tasks",
+            "Test complete_task() success case",
+            "Test complete_task() with invalid ID",
+            "Test task ID generation",
+            "Create comprehensive test fixtures"
+          ]
+        },
+        {
+          "id": "TEST-003",
+          "name": "Integration Tests for CLI",
+          "description": "End-to-end testing of CLI commands",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["CLI-005"],
+          "subtasks": [
+            "Test 'todo add' command execution",
+            "Test 'todo list' command output",
+            "Test 'todo done' command execution",
+            "Test command-line argument parsing",
+            "Test error messages display",
+            "Test help command output",
+            "Mock subprocess calls",
+            "Test exit codes"
+          ]
+        },
+        {
+          "id": "TEST-004",
+          "name": "Test Coverage and Reporting",
+          "description": "Set up coverage tracking and reporting",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["TEST-001", "TEST-002", "TEST-003"],
+          "subtasks": [
+            "Install pytest-cov",
+            "Configure coverage settings",
+            "Set minimum coverage threshold",
+            "Generate HTML coverage reports",
+            "Add coverage to CI/CD",
+            "Document coverage requirements"
+          ]
+        }
+      ]
+    },
+    "documentation": {
+      "priority": "medium",
+      "description": "User and developer documentation",
+      "features": [
+        {
+          "id": "DOC-001",
+          "name": "README Documentation",
+          "description": "Create comprehensive README with usage examples",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["CLI-005"],
+          "subtasks": [
+            "Write project overview",
+            "Add installation instructions",
+            "Document all three commands with examples",
+            "Add usage screenshots/examples",
+            "Include troubleshooting section",
+            "Add requirements and dependencies",
+            "Create quick start guide",
+            "Add contributing guidelines"
+          ]
+        },
+        {
+          "id": "DOC-002",
+          "name": "Code Documentation",
+          "description": "Add docstrings and inline comments",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["TASK-001", "TASK-002", "TASK-003"],
+          "subtasks": [
+            "Add module-level docstrings",
+            "Document all functions with docstrings",
+            "Add parameter descriptions",
+            "Document return values",
+            "Add usage examples in docstrings",
+            "Document exceptions raised",
+            "Add inline comments for complex logic"
+          ]
+        },
+        {
+          "id": "DOC-003",
+          "name": "Architecture Documentation",
+          "description": "Document system architecture and design decisions",
+          "status": "pending",
+          "priority": "low",
+          "dependencies": ["DOC-001"],
+          "subtasks": [
+            "Create architecture diagram",
+            "Document data flow",
+            "Explain design decisions",
+            "Document file structure",
+            "Add API reference",
+            "Create developer guide"
+          ]
+        }
+      ]
+    },
+    "polish": {
+      "priority": "low",
+      "description": "User experience enhancements and polish",
+      "features": [
+        {
+          "id": "POLISH-001",
+          "name": "Output Formatting",
+          "description": "Improve visual formatting of CLI output",
+          "status": "pending",
+          "priority": "low",
+          "dependencies": ["CLI-003"],
+          "subtasks": [
+            "Add consistent spacing in list output",
+            "Align checkboxes and task numbers",
+            "Add visual separators",
+            "Implement table formatting for lists",
+            "Add summary statistics",
+            "Format timestamps nicely"
+          ]
+        },
+        {
+          "id": "POLISH-002",
+          "name": "User Feedback Messages",
+          "description": "Improve success and error messages",
+          "status": "pending",
+          "priority": "low",
+          "dependencies": ["CLI-005"],
+          "subtasks": [
+            "Create consistent message templates",
+            "Add motivational messages",
+            "Improve error message clarity",
+            "Add contextual help suggestions",
+            "Format messages consistently",
+            "Add confirmation messages"
+          ]
+        },
+        {
+          "id": "POLISH-003",
+          "name": "Performance Optimization",
+          "description": "Optimize for large task lists",
+          "status": "pending",
+          "priority": "low",
+          "dependencies": ["DATA-002"],
+          "subtasks": [
+            "Profile file I/O operations",
+            "Optimize JSON parsing",
+            "Add lazy loading if needed",
+            "Benchmark performance",
+            "Optimize task lookup",
+            "Add caching where appropriate"
+          ]
+        }
+      ]
+    },
+    "future_enhancements": {
+      "priority": "low",
+      "description": "Features for future releases (out of MVP scope)",
+      "features": [
+        {
+          "id": "FUTURE-001",
+          "name": "Delete Task Feature",
+          "description": "Allow users to delete tasks",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["TASK-003"],
+          "subtasks": [
+            "Create delete_task() function",
+            "Add 'todo delete' CLI command",
+            "Implement soft delete vs hard delete",
+            "Add confirmation prompt",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-002",
+          "name": "Edit Task Feature",
+          "description": "Allow users to edit task text",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["TASK-001"],
+          "subtasks": [
+            "Create edit_task() function",
+            "Add 'todo edit' CLI command",
+            "Implement interactive editing",
+            "Track edit history",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-003",
+          "name": "Priority Levels",
+          "description": "Add priority (high/medium/low) to tasks",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["DATA-001"],
+          "subtasks": [
+            "Extend Task model with priority field",
+            "Add priority flag to add command",
+            "Sort tasks by priority in list",
+            "Add color coding by priority",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-004",
+          "name": "Due Dates",
+          "description": "Add due dates to tasks",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["DATA-001"],
+          "subtasks": [
+            "Extend Task model with due_date field",
+            "Add date parsing logic",
+            "Implement overdue detection",
+            "Add date formatting",
+            "Sort by due date",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-005",
+          "name": "Categories and Tags",
+          "description": "Organize tasks with categories/tags",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["DATA-001"],
+          "subtasks": [
+            "Extend Task model with tags field",
+            "Add tag parsing logic",
+            "Implement tag filtering",
+            "Add tag-based listing",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-006",
+          "name": "Search and Filters",
+          "description": "Search tasks and apply filters",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["TASK-002"],
+          "subtasks": [
+            "Create search_tasks() function",
+            "Add text search capability",
+            "Implement filter by status",
+            "Add filter by tags/priority",
+            "Add 'todo search' CLI command",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-007",
+          "name": "Colored Output",
+          "description": "Add color to CLI output for better UX",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["CLI-003"],
+          "subtasks": [
+            "Add colorama or rich library",
+            "Color code completed tasks (green)",
+            "Color code pending tasks (yellow)",
+            "Add priority-based colors",
+            "Add --no-color flag",
+            "Update tests",
+            "Document in README"
+          ]
+        },
+        {
+          "id": "FUTURE-008",
+          "name": "Statistics and Reports",
+          "description": "Show productivity statistics",
+          "status": "backlog",
+          "priority": "low",
+          "dependencies": ["TASK-002"],
+          "subtasks": [
+            "Calculate completion rate",
+            "Show tasks completed today/week",
+            "Add productivity trends",
+            "Create 'todo stats' command",
+            "Generate visual charts (optional)",
+            "Update tests",
+            "Document in README"
+          ]
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "total_epics": 8,
+    "total_features": 31,
+    "total_subtasks": 198,
+    "mvp_features": 23,
+    "future_features": 8,
+    "estimated_dev_time": "6-8 hours for MVP",
+    "demo_scope": "Features INFRA-001, DATA-001, DATA-002, TASK-001, TASK-002, CLI-001, CLI-002, CLI-003"
+  },
+  "implementation_order": [
+    {
+      "phase": "Phase 1: Foundation",
+      "duration": "30 minutes",
+      "features": ["INFRA-001", "INFRA-002", "DATA-001"]
+    },
+    {
+      "phase": "Phase 2: Data Layer",
+      "duration": "45 minutes",
+      "features": ["DATA-002", "DATA-003"]
+    },
+    {
+      "phase": "Phase 3: Core Operations",
+      "duration": "90 minutes",
+      "features": ["TASK-001", "TASK-002", "TASK-003", "TASK-004"]
+    },
+    {
+      "phase": "Phase 4: CLI Interface",
+      "duration": "90 minutes",
+      "features": ["CLI-001", "CLI-002", "CLI-003", "CLI-004", "CLI-005", "CLI-006"]
+    },
+    {
+      "phase": "Phase 5: Error Handling",
+      "duration": "60 minutes",
+      "features": ["ERROR-001", "ERROR-002", "ERROR-003"]
+    },
+    {
+      "phase": "Phase 6: Testing",
+      "duration": "90 minutes",
+      "features": ["TEST-001", "TEST-002", "TEST-003", "TEST-004"]
+    },
+    {
+      "phase": "Phase 7: Documentation",
+      "duration": "45 minutes",
+      "features": ["DOC-001", "DOC-002"]
+    },
+    {
+      "phase": "Phase 8: Polish (Optional)",
+      "duration": "30 minutes",
+      "features": ["POLISH-001", "POLISH-002"]
+    }
+  ],
+  "demo_sequence": [
+    {
+      "step": 1,
+      "feature": "INFRA-001",
+      "description": "Set up project structure"
+    },
+    {
+      "step": 2,
+      "feature": "DATA-001",
+      "description": "Define Task data model"
+    },
+    {
+      "step": 3,
+      "feature": "TASK-001",
+      "description": "Implement add_task() - Show adding first task"
+    },
+    {
+      "step": 4,
+      "feature": "CLI-002",
+      "description": "Wire up 'todo add' command - Demo live"
+    },
+    {
+      "step": 5,
+      "feature": "TASK-002",
+      "description": "Implement list_tasks() - Show task listing"
+    }
+  ]
+}
