@@ -1,187 +1,204 @@
 # CLI Todo App
 
-A minimal command-line todo application demonstrating the two-agent harness pattern for AI-assisted development.
+A minimal command-line todo application demonstrating the two-agent harness pattern for long-running AI development sessions.
 
 ## Project Overview
 
-This project showcases how complex requirements can be systematically decomposed into granular, trackable features using a two-agent architecture:
-- **Initializer Agent**: Breaks down requirements into 198 detailed subtasks
+This project showcases how complex requirements decompose into granular, trackable features using a structured two-agent workflow:
+- **Initializer Agent**: Breaks down requirements into detailed feature lists
 - **Coding Agent**: Implements features incrementally with progress tracking
 
 ## Features (MVP)
 
-- **Add tasks**: Create new todo items with a simple command
-- **List tasks**: View all tasks with status indicators
-- **Complete tasks**: Mark tasks as done
+- **Add tasks**: Create new todo items from the command line
+- **List tasks**: Display all tasks with visual completion status
+- **Complete tasks**: Mark tasks as done by number
 - **Data persistence**: Automatic save/load to JSON file
-- **Error handling**: Graceful error messages and validation
+- **Error handling**: Helpful messages for invalid commands
 
-## Technology Stack
+## Requirements
 
-- Python 3.9+
-- argparse (CLI argument parsing)
-- JSON (data persistence)
-- pytest (testing framework)
+- Python 3.9 or higher
+- pytest (for testing)
 
-## Quick Start
+## Installation
 
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd two-agent-demo
-```
-
-2. Run the initialization script:
-```bash
-chmod +x init.sh
-./init.sh
-```
-
+1. Clone this repository
+2. Run the setup script:
+   ```bash
+   chmod +x init.sh
+   ./init.sh
+   ```
 3. Activate the virtual environment:
+   ```bash
+   source venv/bin/activate
+   ```
+
+## Usage
+
+### Add a Task
 ```bash
-source venv/bin/activate
+python todo.py add "Buy groceries"
+python todo.py add "Write documentation"
 ```
 
-### Usage
-
-Once implemented, the CLI will support these commands:
-
+### List All Tasks
 ```bash
-# Add a new task
-todo add "Buy groceries"
-
-# List all tasks
-todo list
-
-# Mark task as complete
-todo done 1
+python todo.py list
 ```
 
-## Development Status
-
-This project is currently in the initialization phase. The complete feature breakdown is available in:
-- `.claude/progress/feature-list.json` - 31 features across 8 categories
-- `.claude/progress/claude-progress.txt` - Progress tracking dashboard
-
-### Implementation Phases
-
-1. **Phase 1: Foundation** (30 min) - Project structure and data models
-2. **Phase 2: Data Layer** (45 min) - JSON persistence and task management
-3. **Phase 3: Core Operations** (90 min) - Add, list, complete functionality
-4. **Phase 4: CLI Interface** (90 min) - Command-line argument parsing
-5. **Phase 5: Error Handling** (60 min) - Robust error management
-6. **Phase 6: Testing** (90 min) - Comprehensive test coverage
-7. **Phase 7: Documentation** (45 min) - User and developer docs
-8. **Phase 8: Polish** (30 min) - UX improvements
-
-## Project Structure
-
+Example output:
 ```
-two-agent-demo/
+1. [ ] Buy groceries
+2. [ ] Write documentation
+```
+
+### Complete a Task
+```bash
+python todo.py done 1
+```
+
+Updated output:
+```
+1. [✓] Buy groceries
+2. [ ] Write documentation
+```
+
+## Development
+
+### Project Structure
+```
+.
+├── todo.py                 # Main application (to be created)
+├── test_todo.py           # Test suite (to be created)
+├── todos.json             # Data file (auto-generated)
+├── plan.prd               # Product requirements
+├── init.sh                # Environment setup script
 ├── .claude/
 │   └── progress/
-│       ├── feature-list.json      # 31 features, 198 subtasks
-│       ├── claude-progress.txt    # Progress dashboard
-│       └── session-state.json     # Current session state
-├── tests/                          # Test files
-├── docs/                           # Documentation
-├── init.sh                         # Environment setup script
-├── plan.prd                        # Product requirements
-├── README.md                       # This file
-└── todo.py                         # Main application (to be created)
+│       ├── feature-list.json      # Detailed feature breakdown (18 features)
+│       ├── claude-progress.txt    # Human-readable progress tracker
+│       └── session-state.json     # Session state for recovery
+└── README.md              # This file
 ```
 
-## Two-Agent Architecture
+### Feature Breakdown
 
-This project demonstrates the "Effective Harnesses for Long-Running Agents" pattern:
+This project contains **18 granular features** across **4 epics**:
 
-### Initializer Agent
-- Analyzes requirements and creates comprehensive feature breakdown
-- Sets up development environment and progress tracking
-- Creates 198 granular subtasks across 31 features
-- Establishes clear implementation order and dependencies
+1. **EPIC-01: Core Task Operations** (4 features)
+   - Task data model
+   - Add task function
+   - List tasks function
+   - Complete task function
 
-### Coding Agent
-- Implements features one at a time from feature-list.json
-- Updates progress after each feature completion
-- Follows test-driven development practices
-- Maintains code quality and documentation standards
+2. **EPIC-02: Data Persistence** (4 features)
+   - Save tasks to JSON
+   - Load tasks from JSON
+   - Auto-save on modifications
+   - Data validation and migration
 
-### Benefits
-- **Granular Progress Tracking**: Every subtask is tracked
-- **Recovery from Interruptions**: Session state enables seamless resumption
-- **Clear Dependencies**: Features are ordered by prerequisites
-- **Systematic Development**: No ambiguity about what to build next
+3. **EPIC-03: CLI Interface** (4 features)
+   - Argument parser setup
+   - Main entry point
+   - User feedback messages
+   - Executable setup
 
-## Development Workflow
+4. **EPIC-04: Testing & Documentation** (6 features)
+   - Core function unit tests
+   - Persistence tests
+   - Integration tests
+   - README documentation
+   - Code documentation
 
-1. **Check current status**:
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=todo
+
+# Run specific test file
+pytest test_todo.py -v
+```
+
+### Development Workflow
+
+This project uses the two-agent pattern:
+
+1. **Initialization** (this phase - complete)
+   - Feature breakdown created
+   - Development environment set up
+   - Progress tracking initialized
+
+2. **Implementation** (next phase)
+   - Use `coding-agent` to implement features one at a time
+   - Features are tracked in `.claude/progress/`
+   - Start with: `TASK-001: Task Data Model`
+
+3. **Testing**
+   - Tests are implemented as separate features
+   - Run tests after each feature completion
+
+### Progress Tracking
+
+View current progress:
 ```bash
 cat .claude/progress/claude-progress.txt
 ```
 
-2. **Start implementing next feature**:
+View detailed feature list:
 ```bash
-# The coding-agent will automatically pick the next feature
-coding-agent "Implement next feature from feature-list"
+cat .claude/progress/feature-list.json | python -m json.tool
 ```
 
-3. **Run tests**:
-```bash
-pytest tests/ -v
-```
+## Demo Timeline
 
-4. **Check coverage**:
-```bash
-pytest --cov=. --cov-report=html
-```
+This project is scoped for a **10-minute live implementation demo**.
 
-## Contributing
+Recommended demo sequence:
+1. TASK-002: Add Task Function (2 min)
+2. TASK-003: List Tasks Function (2 min)
+3. PERSIST-001: Save Tasks to JSON (2 min)
+4. CLI-001: Argument Parser Setup (3 min)
+5. Live demonstration (1 min)
 
-This is a demonstration project for the two-agent harness pattern. The systematic breakdown serves as a reference for:
-- Breaking down complex projects into manageable features
-- Setting up progress tracking systems
-- Implementing features incrementally
-- Maintaining code quality throughout development
+## Future Enhancements (Out of Scope)
 
-## Testing
-
-Run the test suite:
-```bash
-pytest tests/
-```
-
-Run with coverage:
-```bash
-pytest --cov=. --cov-report=term-missing
-```
-
-## Future Enhancements (Backlog)
-
-The feature-list.json includes 8 additional features for future releases:
 - Delete tasks
-- Edit task text
-- Priority levels (high/medium/low)
+- Edit existing tasks
+- Priority levels
 - Due dates
-- Categories and tags
+- Categories/tags
 - Search and filters
 - Colored output
-- Statistics and productivity reports
+- Statistics and analytics
+
+## Technical Details
+
+- **Language**: Python 3.9+
+- **CLI Framework**: argparse
+- **Storage**: JSON file (todos.json)
+- **Testing**: pytest
+- **Architecture**: Single-file script (todo.py)
 
 ## License
 
-This project is for educational/demonstration purposes.
+This is a demonstration project for educational purposes.
 
-## Acknowledgments
+## Contributing
 
-Based on the research paper "Effective Harnesses for Long-Running Agents" demonstrating systematic task decomposition and progress tracking for AI-assisted development.
+This project follows a strict two-agent workflow:
+1. All feature planning happens in the initialization phase
+2. All implementation happens through the coding-agent
+3. Progress is tracked automatically via `.claude/progress/`
+
+See `.claude/progress/feature-list.json` for the complete feature roadmap.
 
 ---
 
-**Current Status**: Initialized - Ready for feature implementation
-
-**Next Step**: Implement INFRA-001 (Project Structure Setup)
-
-**Progress**: 0/31 features completed (0/198 subtasks)
+**Status**: Initialized - Ready for implementation
+**Next Feature**: TASK-001 (Task Data Model)
+**Estimated Total Time**: 15.75 hours
