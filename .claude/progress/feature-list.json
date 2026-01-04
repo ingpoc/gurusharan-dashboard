@@ -109,7 +109,7 @@
       "id": "F007",
       "description": "Set up Anthropic SDK with streaming support",
       "priority": 2,
-      "status": "pending",
+      "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Tech Stack > AI: Claude Agent SDK + Anthropic SDK",
       "dependencies": [
@@ -125,7 +125,7 @@
       "id": "F008",
       "description": "Implement /api/chat endpoint with SSE streaming",
       "priority": 2,
-      "status": "pending",
+      "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/app/api/chat/route.ts",
       "dependencies": [
@@ -142,7 +142,7 @@
       "id": "F009",
       "description": "Create useChat hook with streaming support",
       "priority": 2,
-      "status": "pending",
+      "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/hooks/useChat.ts",
       "dependencies": [
@@ -159,7 +159,7 @@
       "id": "F010",
       "description": "Add StreamingMessage component for real-time display",
       "priority": 2,
-      "status": "pending",
+      "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Project Structure > components/chat/StreamingMessage.tsx",
       "dependencies": [
@@ -176,7 +176,7 @@
       "id": "F011",
       "description": "Connect chat UI to Claude backend",
       "priority": 2,
-      "status": "pending",
+      "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Implementation Phases > ### Phase 2: Claude Integration",
       "dependencies": [
