@@ -1,9 +1,11 @@
 {
-  "project_type": "unknown",
+  "project_type": "nextjs",
   "dev_server_port": 3000,
-  "test_command": "echo 'No test command configured'",
-  "health_check": "",
+  "test_command": "npm run typecheck && npm run lint",
+  "health_check": "curl -sf http://localhost:3000/api/health || curl -sf http://localhost:3000",
   "init_script": "./scripts/init.sh",
-  "required_env": [],
-  "required_services": []
+  "required_env": [".env"],
+  "required_services": ["postgresql"],
+  "build_command": "npm run build",
+  "dev_command": "npm run dev"
 }

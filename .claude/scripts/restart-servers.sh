@@ -1,44 +1,24 @@
 #!/bin/bash
-# TEMPLATE: restart-servers.sh
+# Next.js Server Restart Script
 #
-# Purpose: Kill processes on specified ports and restart frontend/backend servers
+# Purpose: Kill process on port 3000 and restart Next.js dev server
 #
-# CUSTOMIZE THIS for your project:
-# - Update ports for your services
-# - Update start commands for your stack
-# - Add additional services as needed
+# Project: x-content-dashboard (Next.js 16 + Prisma)
+#   - Single Next.js server on port 3000
+#   - Logs output to logs/nextjs.log
 #
-# Usage: ./restart-servers.sh [--no-frontend|--no-backend]
+# Usage: ./restart-servers.sh
 
 set -e
 
-FRONTEND_PORT=3000
-BACKEND_PORT=8000
-NO_FRONTEND=false
-NO_BACKEND=false
+PROJECT_ROOT="x-content-dashboard"
+NEXTJS_PORT=3000
+LOG_DIR="logs"
 
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --no-frontend)
-      NO_FRONTEND=true
-      shift
-      ;;
-    --no-backend)
-      NO_BACKEND=true
-      shift
-      ;;
-    *)
-      echo "Usage: $0 [--no-frontend] [--no-backend]"
-      exit 1
-      ;;
-  esac
-done
-
-echo "=== Restarting Servers ==="
+echo "=== Restarting Next.js Server ==="
 
 # ============================================================================
-# Kill existing processes
+# Kill existing process on port
 # ============================================================================
 
 kill_port() {
@@ -54,58 +34,38 @@ kill_port() {
   fi
 }
 
-if [ "$NO_FRONTEND" = false ]; then
-  kill_port $FRONTEND_PORT
-fi
-
-if [ "$NO_BACKEND" = false ]; then
-  kill_port $BACKEND_PORT
-fi
+kill_port $NEXTJS_PORT
 
 # ============================================================================
-# Start backend (FastAPI)
+# Create log directory
 # ============================================================================
 
-if [ "$NO_BACKEND" = false ]; then
-  echo ""
-  echo "Starting backend on port $BACKEND_PORT..."
-
-  if [ -d "gateway" ]; then
-    cd gateway
-    nohup uvicorn app.main:app --reload --host 0.0.0.0 --port $BACKEND_PORT > ../logs/backend.log 2>&1 &
-    BACKEND_PID=$!
-    echo "Backend started (PID: $BACKEND_PID, logs: logs/backend.log)"
-    cd ..
-  else
-    echo "Warning: gateway/ directory not found, skipping backend" >&2
-  fi
-fi
+mkdir -p "$LOG_DIR"
 
 # ============================================================================
-# Start frontend (Next.js)
-# ============================================================================
-
-if [ "$NO_FRONTEND" = false ]; then
-  echo ""
-  echo "Starting frontend on port $FRONTEND_PORT..."
-
-  if [ -d "frontend" ]; then
-    cd frontend
-    nohup npm run dev > ../logs/frontend.log 2>&1 &
-    FRONTEND_PID=$!
-    echo "Frontend started (PID: $FRONTEND_PID, logs: logs/frontend.log)"
-    cd ..
-  else
-    echo "Warning: frontend/ directory not found, skipping frontend" >&2
-  fi
-fi
-
-# ============================================================================
-# Wait for servers to be ready
+# Start Next.js dev server
 # ============================================================================
 
 echo ""
-echo "Waiting for servers to start..."
+echo "Starting Next.js on port $NEXTJS_PORT..."
+
+if [ -d "$PROJECT_ROOT" ]; then
+  cd "$PROJECT_ROOT"
+  nohup npm run dev > "../$LOG_DIR/nextjs.log" 2>&1 &
+  NEXTJS_PID=$!
+  echo "Next.js started (PID: $NEXTJS_PID, logs: $LOG_DIR/nextjs.log)"
+  cd ..
+else
+  echo "Error: $PROJECT_ROOT directory not found" >&2
+  exit 1
+fi
+
+# ============================================================================
+# Wait for server to be ready
+# ============================================================================
+
+echo ""
+echo "Waiting for Next.js to start..."
 
 wait_for_service() {
   local url=$1
@@ -125,25 +85,19 @@ wait_for_service() {
 
   echo ""
   echo "✗ $name failed to start within ${max_wait}s" >&2
+  echo "Check logs: $LOG_DIR/nextjs.log" >&2
   return 1
 }
 
-if [ "$NO_FRONTEND" = false ]; then
-  wait_for_service "http://localhost:$FRONTEND_PORT" "Frontend" || exit 1
-fi
-
-if [ "$NO_BACKEND" = false ]; then
-  wait_for_service "http://localhost:$BACKEND_PORT/api/health" "Backend" || exit 1
-fi
+wait_for_service "http://localhost:$NEXTJS_PORT" "Next.js" || exit 1
 
 # ============================================================================
 # Summary
 # ============================================================================
 
 echo ""
-echo "=== Servers restarted successfully ==="
-echo "Frontend: http://localhost:$FRONTEND_PORT"
-echo "Backend:  http://localhost:$BACKEND_PORT/api/health"
-echo "Logs:     logs/frontend.log, logs/backend.log"
+echo "=== Next.js server restarted successfully ==="
+echo "URL:  http://localhost:$NEXTJS_PORT"
+echo "Logs: $LOG_DIR/nextjs.log"
 
 exit 0

@@ -1,17 +1,13 @@
 #!/bin/bash
-# TEMPLATE: health-check.sh
+# Next.js + Prisma Health Check
 #
-# Purpose: Fast health diagnosis - show the problem immediately
+# Purpose: Fast health diagnosis for Next.js project
 #
 # ⚠️ CRITICAL: This script runs at the START of EVERY SESSION by orchestrator.
-# NO TIME should be wasted finding root cause. Evolve this continuously.
 #
-# CUSTOMIZE THIS for your project:
-# - Update ports for your services
-# - Add/remove infrastructure checks (database, redis, etc.)
-# - Add/remove log file locations
-# - Adjust error patterns for your stack
-# - Keep adding new failure patterns as you discover them
+# Project: x-content-dashboard (Next.js 16 + Prisma)
+#   - Frontend: Next.js dev server on port 3000
+#   - Database: PostgreSQL (required for Prisma)
 #
 # Exit codes:
 #   0 = healthy
@@ -20,8 +16,8 @@
 
 set -e
 
-FRONTEND_PORT=3000
-BACKEND_PORT=8000
+PROJECT_ROOT="x-content-dashboard"
+NEXTJS_PORT=3000
 LOG_DIR="logs"
 ISSUES_FOUND=0
 
@@ -100,8 +96,7 @@ check_infrastructure() {
   }
 
   # Customize these paths for your project
-  check_env_file "gateway/.env"
-  check_env_file "frontend/.env.local" 2>/dev/null || check_env_file "frontend/.env"
+  check_env_file "$PROJECT_ROOT/.env"
 
   # Exit if infrastructure issues found
   if [ $ISSUES_FOUND -eq 1 ]; then
@@ -134,20 +129,11 @@ check_service() {
   # Service is down - IMMEDIATELY show why
   echo "✗ $name is NOT responding" >&2
 
-  # Show process status
-  local process_name=""
-  if [ "$name" = "Backend" ]; then
-    process_name="uvicorn"
-  elif [ "$name" = "Frontend" ]; then
-    process_name="next dev"
-  fi
-
-  if [ -n "$process_name" ]; then
-    if pgrep -f "$process_name" >/dev/null 2>&1; then
-      echo "  Process '$process_name' is running but not responding on port" >&2
-    else
-      echo "  Process '$process_name' is NOT running" >&2
-    fi
+  # Show process status for Next.js
+  if pgrep -f "next dev" >/dev/null 2>&1; then
+    echo "  Process 'next dev' is running but not responding on port" >&2
+  else
+    echo "  Process 'next dev' is NOT running" >&2
   fi
 
   # Show log errors RIGHT NOW if log exists
@@ -161,26 +147,14 @@ check_service() {
 
   # Suggest fix
   echo "" >&2
-  if [ "$name" = "Backend" ]; then
-    echo "Fix: cd gateway && uvicorn main:app --reload" >&2
-    echo "Or:   ./.claude/scripts/restart-servers.sh" >&2
-  else
-    echo "Fix: cd frontend && npm run dev" >&2
-    echo "Or:   ./.claude/scripts/restart-servers.sh" >&2
-  fi
+  echo "Fix: cd $PROJECT_ROOT && npm run dev" >&2
+  echo "Or:   ./.claude/scripts/restart-servers.sh" >&2
 
   return 1
 }
 
-# Check frontend
-if ! check_service "http://localhost:$FRONTEND_PORT" "Frontend" "$LOG_DIR/frontend.log"; then
-  echo "" >&2
-  echo "❌ Health check FAILED" >&2
-  exit 1
-fi
-
-# Check backend
-if ! check_service "http://localhost:$BACKEND_PORT/api/health" "Backend" "$LOG_DIR/backend.log"; then
+# Check Next.js server
+if ! check_service "http://localhost:$NEXTJS_PORT" "Next.js" "$LOG_DIR/nextjs.log"; then
   echo "" >&2
   echo "❌ Health check FAILED" >&2
   exit 1
@@ -213,8 +187,7 @@ check_warnings() {
   fi
 }
 
-check_warnings "$LOG_DIR/frontend.log" "Frontend"
-check_warnings "$LOG_DIR/backend.log" "Backend"
+check_warnings "$LOG_DIR/nextjs.log" "Next.js"
 
 # ============================================================================
 # Optional: Check Solana validator (uncomment if using Solana)
