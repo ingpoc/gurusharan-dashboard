@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePKCE, getAuthUrl, storeOAuthState } from '@/lib/x-oauth';
 
-export const runtime = 'edge';
-
 // Initiate X OAuth flow
 export async function GET(req: NextRequest) {
   try {

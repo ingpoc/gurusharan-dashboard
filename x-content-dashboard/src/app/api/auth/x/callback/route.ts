@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForToken, getXUser, getOAuthState } from '@/lib/x-oauth';
 import { prisma } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // Handle X OAuth callback
 export async function GET(req: NextRequest) {
   try {

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // GET /api/drafts - List all drafts
 export async function GET() {
   try {
