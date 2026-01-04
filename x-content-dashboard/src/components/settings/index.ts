@@ -1,0 +1,1 @@
+export { PersonaEditor } from './PersonaEditor';

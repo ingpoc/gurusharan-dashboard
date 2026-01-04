@@ -192,7 +192,7 @@
       "id": "F012",
       "description": "Implement X OAuth 2.0 PKCE authentication flow",
       "priority": 3,
-      "status": "pending",
+      "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## X API Integration",
       "dependencies": [
