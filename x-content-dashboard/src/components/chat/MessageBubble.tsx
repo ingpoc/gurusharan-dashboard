@@ -2,6 +2,16 @@
 
 import { motion } from "framer-motion";
 import { messageBubble } from "@/lib/animations";
+import { ToolExecutionCard } from "./ToolExecutionCard";
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+  status?: "running" | "success" | "error";
+  result?: unknown;
+  error?: string;
+}
 
 export interface Message {
   id: string;
@@ -9,6 +19,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  toolCalls?: ToolCall[];
 }
 
 interface MessageBubbleProps {
@@ -23,7 +34,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       {...messageBubble}
       style={{
         display: "flex",
-        justifyContent: isUser ? "flex-end" : "flex-start",
+        flexDirection: "column",
+        alignItems: isUser ? "flex-end" : "flex-start",
         marginBottom: "1rem",
       }}
     >
@@ -107,6 +119,22 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </span>
         </div>
       </div>
+
+      {/* Tool execution cards */}
+      {!isUser && message.toolCalls && message.toolCalls.length > 0 && (
+        <div style={{ marginTop: "0.5rem", marginLeft: "3.25rem" }}>
+          {message.toolCalls.map((toolCall) => (
+            <ToolExecutionCard
+              key={toolCall.id}
+              toolName={toolCall.name}
+              parameters={toolCall.input}
+              status={toolCall.status || "running"}
+              result={toolCall.result}
+              error={toolCall.error}
+            />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

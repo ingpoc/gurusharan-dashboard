@@ -226,7 +226,7 @@
       "id": "F014",
       "description": "Define Claude agent tool schemas with Zod",
       "priority": 4,
-      "status": "pending",
+      "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools",
       "dependencies": [
@@ -242,7 +242,7 @@
       "id": "F015",
       "description": "Implement get_settings and draft_post tools",
       "priority": 4,
-      "status": "pending",
+      "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > get_settings, draft_post",
       "dependencies": [
@@ -259,7 +259,7 @@
       "id": "F016",
       "description": "Implement post_now tool for X posting",
       "priority": 4,
-      "status": "pending",
+      "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > post_now",
       "dependencies": [
@@ -276,7 +276,7 @@
       "id": "F017",
       "description": "Implement research_topic tool with web search",
       "priority": 4,
-      "status": "pending",
+      "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > research_topic",
       "dependencies": [
