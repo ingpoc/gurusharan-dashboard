@@ -1,0 +1,435 @@
+{
+  "project": "x-content-dashboard",
+  "description": "AI-powered content creation dashboard for @techtrends3107",
+  "plan_reference": "/Users/gurusharan/.claude/plans/curious-orbiting-clock.md",
+  "created": "2026-01-04",
+  "features": [
+    {
+      "id": "F001",
+      "description": "Initialize Next.js 14 project with TypeScript, Tailwind, ESLint",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## Implementation Phases > ### Phase 1: Foundation (MVP)",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Next.js 14 project created with App Router",
+        "TypeScript configured",
+        "Tailwind CSS installed",
+        "Project runs on localhost:3001"
+      ]
+    },
+    {
+      "id": "F002",
+      "description": "Configure Drams-inspired design system (colors, fonts, animations)",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## UI Design (Drams-inspired)",
+      "dependencies": [
+        "F001"
+      ],
+      "acceptance_criteria": [
+        "Colors: #ffffff bg, #262626 text, #ff611a accent",
+        "Inter font configured",
+        "Spring animations defined (stiffness: 170, damping: 30)",
+        "1200px max-width layout"
+      ]
+    },
+    {
+      "id": "F003",
+      "description": "Set up Prisma with PostgreSQL and database schema",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## Database Schema",
+      "dependencies": [
+        "F001"
+      ],
+      "acceptance_criteria": [
+        "Prisma installed and configured",
+        "Settings, Draft, Post models created",
+        "Database migrations run successfully",
+        "Prisma client generated"
+      ]
+    },
+    {
+      "id": "F004",
+      "description": "Create basic layout components (Sidebar, Header, MainLayout)",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## Project Structure > components/layout/",
+      "dependencies": [
+        "F002"
+      ],
+      "acceptance_criteria": [
+        "Sidebar with navigation",
+        "Header with branding",
+        "MainLayout wrapper component",
+        "Responsive design for mobile/desktop"
+      ]
+    },
+    {
+      "id": "F005",
+      "description": "Build base UI components (Button, Card, Input, Modal)",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## Project Structure > components/ui/",
+      "dependencies": [
+        "F002"
+      ],
+      "acceptance_criteria": [
+        "Button with variants (primary, secondary, ghost)",
+        "Card component with shadows",
+        "Input with focus states",
+        "Modal with backdrop"
+      ]
+    },
+    {
+      "id": "F006",
+      "description": "Build chat UI components (ChatPanel, MessageList, ChatInput)",
+      "priority": 1,
+      "status": "implemented",
+      "phase": "foundation",
+      "plan_section": "## Project Structure > components/chat/",
+      "dependencies": [
+        "F004",
+        "F005"
+      ],
+      "acceptance_criteria": [
+        "ChatPanel container layout",
+        "MessageList displays messages",
+        "ChatInput with send button",
+        "Message bubbles styled for user/assistant"
+      ]
+    },
+    {
+      "id": "F007",
+      "description": "Set up Anthropic SDK with streaming support",
+      "priority": 2,
+      "status": "pending",
+      "phase": "claude-integration",
+      "plan_section": "## Tech Stack > AI: Claude Agent SDK + Anthropic SDK",
+      "dependencies": [
+        "F001"
+      ],
+      "acceptance_criteria": [
+        "@anthropic-ai/sdk installed",
+        "Client configured with API key",
+        "Streaming messages work"
+      ]
+    },
+    {
+      "id": "F008",
+      "description": "Implement /api/chat endpoint with SSE streaming",
+      "priority": 2,
+      "status": "pending",
+      "phase": "claude-integration",
+      "plan_section": "## Key Files to Create > src/app/api/chat/route.ts",
+      "dependencies": [
+        "F007"
+      ],
+      "acceptance_criteria": [
+        "POST /api/chat endpoint",
+        "Server-Sent Events streaming",
+        "Handles tool execution",
+        "Returns streaming text chunks"
+      ]
+    },
+    {
+      "id": "F009",
+      "description": "Create useChat hook with streaming support",
+      "priority": 2,
+      "status": "pending",
+      "phase": "claude-integration",
+      "plan_section": "## Key Files to Create > src/hooks/useChat.ts",
+      "dependencies": [
+        "F008"
+      ],
+      "acceptance_criteria": [
+        "useChat hook manages state",
+        "Handles SSE stream reading",
+        "Updates messages in real-time",
+        "Exposes isStreaming state"
+      ]
+    },
+    {
+      "id": "F010",
+      "description": "Add StreamingMessage component for real-time display",
+      "priority": 2,
+      "status": "pending",
+      "phase": "claude-integration",
+      "plan_section": "## Project Structure > components/chat/StreamingMessage.tsx",
+      "dependencies": [
+        "F006",
+        "F009"
+      ],
+      "acceptance_criteria": [
+        "Displays streaming text progressively",
+        "Shows cursor/typing indicator",
+        "Integrates with MessageList"
+      ]
+    },
+    {
+      "id": "F011",
+      "description": "Connect chat UI to Claude backend",
+      "priority": 2,
+      "status": "pending",
+      "phase": "claude-integration",
+      "plan_section": "## Implementation Phases > ### Phase 2: Claude Integration",
+      "dependencies": [
+        "F010"
+      ],
+      "acceptance_criteria": [
+        "Chat messages sent to API",
+        "Responses streamed to UI",
+        "Full conversation flow works"
+      ]
+    },
+    {
+      "id": "F012",
+      "description": "Implement X OAuth 2.0 PKCE authentication flow",
+      "priority": 3,
+      "status": "pending",
+      "phase": "x-integration",
+      "plan_section": "## X API Integration",
+      "dependencies": [
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "twitter-api-v2 installed",
+        "OAuth initiation endpoint",
+        "Callback handler",
+        "Tokens stored encrypted in DB"
+      ]
+    },
+    {
+      "id": "F013",
+      "description": "Create AccountConnection component for X account linking",
+      "priority": 3,
+      "status": "pending",
+      "phase": "x-integration",
+      "plan_section": "## Implementation Phases > ### Phase 3: X API Connection",
+      "dependencies": [
+        "F012",
+        "F005"
+      ],
+      "acceptance_criteria": [
+        "Connect button initiates OAuth",
+        "Shows connected account status",
+        "Disconnect functionality"
+      ]
+    },
+    {
+      "id": "F014",
+      "description": "Define Claude agent tool schemas with Zod",
+      "priority": 4,
+      "status": "pending",
+      "phase": "agent-tools",
+      "plan_section": "## Claude Agent Tools",
+      "dependencies": [
+        "F007"
+      ],
+      "acceptance_criteria": [
+        "All 6 tools defined with Zod schemas",
+        "Type-safe input/output",
+        "Tool registry exported"
+      ]
+    },
+    {
+      "id": "F015",
+      "description": "Implement get_settings and draft_post tools",
+      "priority": 4,
+      "status": "pending",
+      "phase": "agent-tools",
+      "plan_section": "## Claude Agent Tools > get_settings, draft_post",
+      "dependencies": [
+        "F014",
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "get_settings reads persona from DB",
+        "draft_post generates content with persona",
+        "Tools execute correctly in chat"
+      ]
+    },
+    {
+      "id": "F016",
+      "description": "Implement post_now tool for X posting",
+      "priority": 4,
+      "status": "pending",
+      "phase": "agent-tools",
+      "plan_section": "## Claude Agent Tools > post_now",
+      "dependencies": [
+        "F015",
+        "F012"
+      ],
+      "acceptance_criteria": [
+        "Posts to X via API",
+        "Saves to Post history",
+        "Returns tweet URL"
+      ]
+    },
+    {
+      "id": "F017",
+      "description": "Implement research_topic tool with web search",
+      "priority": 4,
+      "status": "pending",
+      "phase": "agent-tools",
+      "plan_section": "## Claude Agent Tools > research_topic",
+      "dependencies": [
+        "F014"
+      ],
+      "acceptance_criteria": [
+        "Searches for trending topics",
+        "Returns relevant content",
+        "Respects rate limits"
+      ]
+    },
+    {
+      "id": "F018",
+      "description": "Add ToolExecutionCard UI for showing tool usage",
+      "priority": 4,
+      "status": "pending",
+      "phase": "agent-tools",
+      "plan_section": "## Implementation Phases > ### Phase 4: Agent Tools",
+      "dependencies": [
+        "F010"
+      ],
+      "acceptance_criteria": [
+        "Shows tool name being executed",
+        "Displays tool parameters",
+        "Shows result summary"
+      ]
+    },
+    {
+      "id": "F019",
+      "description": "Build SummaryView dashboard component",
+      "priority": 5,
+      "status": "pending",
+      "phase": "dashboard",
+      "plan_section": "## Key Files to Create > src/components/dashboard/SummaryView.tsx",
+      "dependencies": [
+        "F004"
+      ],
+      "acceptance_criteria": [
+        "Shows capabilities overview",
+        "X account status",
+        "Recent activity"
+      ]
+    },
+    {
+      "id": "F020",
+      "description": "Create DraftsList component with management",
+      "priority": 5,
+      "status": "pending",
+      "phase": "dashboard",
+      "plan_section": "## Project Structure > components/dashboard/DraftsList.tsx",
+      "dependencies": [
+        "F003",
+        "F005"
+      ],
+      "acceptance_criteria": [
+        "Lists draft posts",
+        "Edit/delete functionality",
+        "Post now action"
+      ]
+    },
+    {
+      "id": "F021",
+      "description": "Build PersonaEditor in Settings page",
+      "priority": 5,
+      "status": "pending",
+      "phase": "dashboard",
+      "plan_section": "## Key Files to Create > src/app/settings/page.tsx",
+      "dependencies": [
+        "F003",
+        "F005",
+        "F013"
+      ],
+      "acceptance_criteria": [
+        "Edit persona fields",
+        "Save to database",
+        "Preview persona"
+      ]
+    },
+    {
+      "id": "F022",
+      "description": "Add Framer Motion animations",
+      "priority": 6,
+      "status": "pending",
+      "phase": "polish",
+      "plan_section": "## UI Design (Drams-inspired) > Animations",
+      "dependencies": [
+        "F019",
+        "F020",
+        "F021"
+      ],
+      "acceptance_criteria": [
+        "Spring animations on components",
+        "Page transitions",
+        "Micro-interactions"
+      ]
+    },
+    {
+      "id": "F023",
+      "description": "Implement error handling and rate limit counter",
+      "priority": 6,
+      "status": "pending",
+      "phase": "polish",
+      "plan_section": "## Notes > Free tier X API: 17 posts/day",
+      "dependencies": [
+        "F016"
+      ],
+      "acceptance_criteria": [
+        "Error boundaries",
+        "Toast notifications",
+        "17/day rate limit counter in UI"
+      ]
+    },
+    {
+      "id": "F024",
+      "description": "Run agent-sdk-verifier-ts and fix issues",
+      "priority": 6,
+      "status": "pending",
+      "phase": "polish",
+      "plan_section": "## Notes > Use agent-sdk-verifier-ts before deployment",
+      "dependencies": [
+        "F011",
+        "F018"
+      ],
+      "acceptance_criteria": [
+        "Verifier passes all checks",
+        "SDK best practices followed",
+        "Ready for deployment"
+      ]
+    },
+    {
+      "id": "F025",
+      "description": "Deploy to Vercel",
+      "priority": 6,
+      "status": "pending",
+      "phase": "polish",
+      "plan_section": "## Tech Stack > Deployment: Vercel",
+      "dependencies": [
+        "F023",
+        "F024"
+      ],
+      "acceptance_criteria": [
+        "Deployed to Vercel",
+        "Environment variables configured",
+        "Production URL working"
+      ]
+    }
+  ],
+  "phases": {
+    "foundation": "F001-F006",
+    "claude-integration": "F007-F011",
+    "x-integration": "F012-F013",
+    "agent-tools": "F014-F018",
+    "dashboard": "F019-F021",
+    "polish": "F022-F025"
+  }
+}
