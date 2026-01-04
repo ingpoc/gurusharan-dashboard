@@ -292,7 +292,7 @@
       "id": "F018",
       "description": "Add ToolExecutionCard UI for showing tool usage",
       "priority": 4,
-      "status": "pending",
+      "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Implementation Phases > ### Phase 4: Agent Tools",
       "dependencies": [
@@ -308,7 +308,7 @@
       "id": "F019",
       "description": "Build SummaryView dashboard component",
       "priority": 5,
-      "status": "pending",
+      "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/components/dashboard/SummaryView.tsx",
       "dependencies": [
@@ -324,7 +324,7 @@
       "id": "F020",
       "description": "Create DraftsList component with management",
       "priority": 5,
-      "status": "pending",
+      "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Project Structure > components/dashboard/DraftsList.tsx",
       "dependencies": [
@@ -359,7 +359,7 @@
       "id": "F022",
       "description": "Add Framer Motion animations",
       "priority": 6,
-      "status": "pending",
+      "status": "implemented",
       "phase": "polish",
       "plan_section": "## UI Design (Drams-inspired) > Animations",
       "dependencies": [
@@ -377,7 +377,7 @@
       "id": "F023",
       "description": "Implement error handling and rate limit counter",
       "priority": 6,
-      "status": "pending",
+      "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Free tier X API: 17 posts/day",
       "dependencies": [
@@ -393,7 +393,7 @@
       "id": "F024",
       "description": "Run agent-sdk-verifier-ts and fix issues",
       "priority": 6,
-      "status": "pending",
+      "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Use agent-sdk-verifier-ts before deployment",
       "dependencies": [
