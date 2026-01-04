@@ -209,7 +209,7 @@
       "id": "F013",
       "description": "Create AccountConnection component for X account linking",
       "priority": 3,
-      "status": "pending",
+      "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## Implementation Phases > ### Phase 3: X API Connection",
       "dependencies": [
@@ -341,7 +341,7 @@
       "id": "F021",
       "description": "Build PersonaEditor in Settings page",
       "priority": 5,
-      "status": "pending",
+      "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/app/settings/page.tsx",
       "dependencies": [

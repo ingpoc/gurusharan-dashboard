@@ -1,5 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
+import { prisma } from './db';
+import { TwitterApi } from 'twitter-api-v2';
+import { refreshAccessToken } from './x-oauth';
 
 // ============================================================================
 // Tool Schemas (Zod)
@@ -348,13 +351,20 @@ export const defaultTools: ToolDefinition[] = [
     description: 'Get the current user settings and persona',
     inputSchema: GetSettingsSchema,
     execute: async () => {
-      // TODO: Implement database lookup
+      const settings = await prisma.settings.findFirst();
+      if (!settings) {
+        return { persona: null };
+      }
+      const persona = JSON.parse(settings.persona || '{}');
       return {
         persona: {
-          name: 'Tech Trends',
-          handle: '@techtrends3107',
-          tone: 'professional',
-          topics: ['AI', 'Machine Learning', 'Technology'],
+          name: persona.name || 'Tech Trends',
+          handle: settings.xUsername ? `@${settings.xUsername}` : '@techtrends3107',
+          tone: persona.tone || 'professional',
+          style: persona.style || 'informative',
+          topics: persona.topics || [],
+          hashtagUsage: persona.hashtagUsage ?? true,
+          emojiUsage: persona.emojiUsage ?? false,
         },
       };
     },
@@ -365,10 +375,51 @@ export const defaultTools: ToolDefinition[] = [
     inputSchema: DraftPostSchema,
     execute: async (input) => {
       const params = input as z.infer<typeof DraftPostSchema>;
-      // TODO: Implement AI drafting with persona
+
+      // Get persona for context
+      const settings = await prisma.settings.findFirst();
+      const persona = settings ? JSON.parse(settings.persona || '{}') : {};
+
+      // Build prompt with persona context
+      const tone = params.tone || persona.tone || 'professional';
+      const topics = persona.topics?.join(', ') || 'AI, Technology';
+      const useHashtags = params.hashtags ?? (persona.hashtagUsage ?? true);
+      const useEmoji = persona.emojiUsage ?? false;
+
+      const prompt = `Write a ${tone} X (Twitter) post about: ${params.topic}
+
+Context:
+- Topics covered: ${topics}
+- Style: ${persona.style || 'informative'}
+- Length: ${params.length || 'medium'}
+- Include hashtags: ${useHashtags}
+- Use emojis: ${useEmoji}
+
+Keep it engaging and under 280 characters.`;
+
+      // Use Claude to generate content
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY || '',
+      });
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const content = response.content[0].type === 'text'
+        ? response.content[0].text.trim()
+        : `🚀 ${params.topic}`;
+
       return {
-        content: `🚀 ${params.topic}\n\n#AI #Technology`,
+        content,
         preview: true,
+        personaUsed: {
+          tone,
+          style: persona.style,
+          topics: persona.topics,
+        },
       };
     },
   },
@@ -378,9 +429,20 @@ export const defaultTools: ToolDefinition[] = [
     inputSchema: SaveDraftSchema,
     execute: async (input) => {
       const params = input as z.infer<typeof SaveDraftSchema>;
-      // TODO: Implement database save
+
+      const draft = await prisma.draft.create({
+        data: {
+          content: params.content,
+          metadata: JSON.stringify({
+            title: params.title,
+            createdAt: new Date().toISOString(),
+          }),
+          status: 'DRAFT',
+        },
+      });
+
       return {
-        id: `draft-${Date.now()}`,
+        id: draft.id,
         saved: true,
       };
     },
@@ -391,10 +453,22 @@ export const defaultTools: ToolDefinition[] = [
     inputSchema: GetDraftsSchema,
     execute: async (input) => {
       const params = input as z.infer<typeof GetDraftsSchema>;
-      // TODO: Implement database lookup
+      const limit = params.limit || 10;
+
+      const drafts = await prisma.draft.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      });
+
       return {
-        drafts: [],
-        count: 0,
+        drafts: drafts.map((d) => ({
+          id: d.id,
+          content: d.content,
+          metadata: JSON.parse(d.metadata || '{}'),
+          status: d.status,
+          createdAt: d.createdAt.toISOString(),
+        })),
+        count: drafts.length,
       };
     },
   },
@@ -404,11 +478,37 @@ export const defaultTools: ToolDefinition[] = [
     inputSchema: ResearchTopicSchema,
     execute: async (input) => {
       const params = input as z.infer<typeof ResearchTopicSchema>;
-      // TODO: Implement web search
+
+      // Use Tavily API for web search (or fallback to Claude knowledge)
+      // For now, use Claude's knowledge with current date context
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY || '',
+      });
+
+      const prompt = `Research and provide current information about: ${params.topic}
+
+Please provide:
+1. Key trends and developments
+2. Important statistics or facts
+3. Notable opinions or perspectives
+4. Suggested hashtags for this topic
+
+Format as a concise summary suitable for social media content creation.`;
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const summary = response.content[0].type === 'text'
+        ? response.content[0].text.trim()
+        : `Research on ${params.topic}`;
+
       return {
         topic: params.topic,
-        results: [],
-        summary: 'Research feature coming soon',
+        summary,
+        researchedAt: new Date().toISOString(),
       };
     },
   },
@@ -418,12 +518,94 @@ export const defaultTools: ToolDefinition[] = [
     inputSchema: PostNowSchema,
     execute: async (input) => {
       const params = input as z.infer<typeof PostNowSchema>;
-      // TODO: Implement X API posting
-      return {
-        scheduled: params.scheduledFor !== undefined,
-        scheduledFor: params.scheduledFor,
-        message: 'X API integration coming soon',
-      };
+
+      // Get settings with X credentials
+      const settings = await prisma.settings.findFirst();
+      if (!settings?.xAccessToken) {
+        throw new Error('X account not connected. Please connect your account in Settings.');
+      }
+
+      // Check if token needs refresh
+      let accessToken = settings.xAccessToken;
+      if (
+        settings.xTokenExpiry &&
+        new Date(settings.xTokenExpiry) < new Date(Date.now() + 5 * 60 * 1000)
+      ) {
+        // Refresh token
+        const tokens = await refreshAccessToken(settings.xRefreshToken!);
+        accessToken = tokens.accessToken;
+
+        // Update in database
+        await prisma.settings.update({
+          where: { id: settings.id },
+          data: {
+            xAccessToken: tokens.accessToken,
+            xRefreshToken: tokens.refreshToken,
+            xTokenExpiry: new Date(Date.now() + tokens.expiresIn * 1000),
+          },
+        });
+      }
+
+      // If scheduling, save as draft with SCHEDULED status
+      if (params.scheduledFor) {
+        const scheduledDate = new Date(params.scheduledFor);
+        if (scheduledDate <= new Date()) {
+          throw new Error('Scheduled time must be in the future');
+        }
+
+        const draft = await prisma.draft.create({
+          data: {
+            content: params.content,
+            scheduledAt: scheduledDate,
+            status: 'SCHEDULED',
+          },
+        });
+
+        return {
+          scheduled: true,
+          scheduledFor: params.scheduledFor,
+          draftId: draft.id,
+          message: 'Post scheduled successfully',
+        };
+      }
+
+      // Post immediately to X
+      try {
+        const client = new TwitterApi(accessToken);
+        const tweet = await client.v2.tweet(params.content);
+
+        // Save to Post history
+        await prisma.post.create({
+          data: {
+            tweetId: tweet.data.id,
+            content: params.content,
+            postedAt: new Date(),
+          },
+        });
+
+        // Update daily post count (check today's posts)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const postsToday = await prisma.post.count({
+          where: {
+            postedAt: { gte: today },
+          },
+        });
+
+        return {
+          posted: true,
+          tweetId: tweet.data.id,
+          tweetUrl: `https://x.com/${settings.xUsername}/status/${tweet.data.id}`,
+          postsToday,
+          postsRemaining: Math.max(0, 17 - postsToday),
+        };
+      } catch (error: any) {
+        // Check for rate limit errors
+        if (error.code === 429) {
+          throw new Error('Rate limit exceeded. You can post 17 times per day on the free tier.');
+        }
+        throw error;
+      }
     },
   },
 ];
