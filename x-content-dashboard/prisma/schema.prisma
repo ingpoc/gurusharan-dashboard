@@ -1,0 +1,81 @@
+// X Content Dashboard - Database Schema
+// Using SQLite for local dev (can switch to PostgreSQL for production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Stores persona configuration and X account connection
+model Settings {
+  id            String    @id @default(cuid())
+
+  // Persona configuration (JSON)
+  // { name, topics, tone, style, hashtagUsage, emojiUsage }
+  persona       String    @default("{}")
+
+  // X Account Connection
+  xUserId       String?   @unique
+  xUsername     String?
+  xAccessToken  String?   // Should be encrypted in production
+  xRefreshToken String?   // Should be encrypted in production
+  xTokenExpiry  DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Draft posts before publishing
+model Draft {
+  id          String      @id @default(cuid())
+  content     String
+
+  // Research context and metadata (JSON)
+  metadata    String?     @default("{}")
+
+  scheduledAt DateTime?
+  status      DraftStatus @default(DRAFT)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum DraftStatus {
+  DRAFT
+  SCHEDULED
+  POSTED
+  FAILED
+}
+
+// Published posts history with engagement metrics
+model Post {
+  id          String   @id @default(cuid())
+  tweetId     String   @unique
+  content     String
+  postedAt    DateTime
+
+  // Engagement metrics (updated periodically)
+  likes       Int      @default(0)
+  retweets    Int      @default(0)
+  replies     Int      @default(0)
+  impressions Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Chat session history
+model ChatSession {
+  id        String   @id @default(cuid())
+
+  // Stores array of messages as JSON
+  // [{ role: 'user'|'assistant', content: string, toolCalls?: array, timestamp: string }]
+  messages  String   @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
