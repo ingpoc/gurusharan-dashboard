@@ -1,6 +1,8 @@
 {
-  "state": "IMPLEMENT",
-  "entered_at": "2026-01-04T11:40:30Z",
+  "state": "TEST",
+  "feature_id": "",
+  "entered_at": "2026-01-05T13:33:44+05:30",
+  "attempts": 1,
   "health_status": "HEALTHY",
   "history": [
     {
@@ -14,7 +16,31 @@
       "to": "IMPLEMENT",
       "at": "2026-01-04T11:40:30Z",
       "reason": "INIT verified, starting implementation"
+    },
+    {
+      "from": "IMPLEMENT",
+      "to": "TEST",
+      "at": "2026-01-05T13:22:08+05:30",
+      "reason": "Tests passed (typecheck, lint)"
+    },
+    {
+      "from": "TEST",
+      "to": "TEST",
+      "at": "2026-01-05T13:28:42+05:30",
+      "reason": "Tests passed (typecheck, lint)"
+    },
+    {
+      "from": "TEST",
+      "to": "COMPLETE",
+      "at": "2026-01-05T13:33:44+05:30",
+      "reason": "All tests passed"
+    },
+    {
+      "from": "COMPLETE",
+      "to": "TEST",
+      "at": "2026-01-05T13:35:29+05:30",
+      "reason": "Manual revert - testing transition-state.sh"
     }
   ],
-  "last_updated": "2026-01-05T00:00:00Z"
+  "last_updated": "2026-01-05T13:35:29+05:30"
 }
