@@ -144,27 +144,18 @@ export async function getXUser(accessToken: string): Promise<{
   };
 }
 
-// Store OAuth state temporarily (in-memory for dev, use Redis for production)
-const oauthStates = new Map<string, { verifier: string; expiresAt: number }>();
+// Store OAuth state: encode verifier in state parameter (no server storage needed)
+// This avoids issues with HMR clearing in-memory state or cookies not persisting
 
-export function storeOAuthState(state: string, verifier: string): void {
-  // State expires in 10 minutes
-  oauthStates.set(state, {
-    verifier,
-    expiresAt: Date.now() + 10 * 60 * 1000,
-  });
-}
+export async function getOAuthState(state: string): Promise<string | null> {
+  // State format: {random}.{base64_verifier}
+  const parts = state.split('.');
+  if (parts.length !== 2) return null;
 
-export function getOAuthState(state: string): string | null {
-  const data = oauthStates.get(state);
-  if (!data) return null;
-
-  // Check expiration
-  if (Date.now() > data.expiresAt) {
-    oauthStates.delete(state);
+  // Decode verifier from state
+  try {
+    return atob(parts[1]);
+  } catch {
     return null;
   }
-
-  oauthStates.delete(state); // One-time use
-  return data.verifier;
 }

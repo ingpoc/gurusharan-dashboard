@@ -86,8 +86,14 @@ export class ContentCreatorAgent {
 
     return `You are an AI content creation assistant for @techtrends3107, an X (Twitter) account focused on AI and technology trends.
 
-Your capabilities:
+Your available tools:
 ${toolDescriptions}
+
+CRITICAL: You MUST use these tools to perform actions:
+- When user asks to "post" or "tweet", you MUST call the post_now tool with the content
+- When user asks to "draft" or "write", you can use draft_post to generate content
+- NEVER pretend to have performed an action - always use the actual tools
+- Always wait for tool results before confirming actions are complete
 
 When drafting posts:
 - Keep them concise and engaging (under 280 characters when possible)
@@ -107,11 +113,13 @@ Always ask for clarification if the request is unclear.`;
    * Convert Agent SDK tools to Anthropic API format
    */
   private getAnthropicTools() {
-    return Array.from(this.tools.values()).map((tool) => ({
+    const tools = Array.from(this.tools.values()).map((tool) => ({
       name: tool.name,
       description: tool.description,
       input_schema: this.zodToAnthropicSchema(tool.inputSchema),
     }));
+    console.log('[Agent] Tools for Anthropic:', JSON.stringify(tools, null, 2));
+    return tools;
   }
 
   /**
@@ -181,9 +189,11 @@ Always ask for clarification if the request is unclear.`;
    * Execute a tool call
    */
   private async executeTool(toolUse: ToolUse): Promise<ToolResult> {
+    console.log('[Agent] Executing tool:', toolUse.name, 'with input:', toolUse.input);
     const tool = this.tools.get(toolUse.name);
 
     if (!tool) {
+      console.log('[Agent] Tool not found:', toolUse.name);
       return {
         type: 'tool_result',
         tool_use_id: toolUse.id,
@@ -193,7 +203,9 @@ Always ask for clarification if the request is unclear.`;
 
     try {
       const validatedInput = tool.inputSchema.parse(toolUse.input);
+      console.log('[Agent] Tool input validated, executing...');
       const result = await tool.execute(validatedInput);
+      console.log('[Agent] Tool execution result:', typeof result === 'object' ? JSON.stringify(result).substring(0, 100) : result);
 
       return {
         type: 'tool_result',
@@ -201,6 +213,7 @@ Always ask for clarification if the request is unclear.`;
         content: JSON.stringify(result, null, 2),
       };
     } catch (error) {
+      console.error('[Agent] Tool execution error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         type: 'tool_result',
@@ -223,7 +236,11 @@ Always ask for clarification if the request is unclear.`;
       { role: 'user', content: userMessage },
     ];
 
-    let currentToolUses: ToolUse[] = [];
+    const toolResults: Array<{ toolUseId: string; result: ToolResult }> = [];
+    let accumulatedText = '';
+
+    // For accumulating tool input from input_json_delta events
+    let pendingToolUse: { id: string; name: string; inputAccumulator: string } | null = null;
 
     try {
       // Create message with tools
@@ -236,24 +253,16 @@ Always ask for clarification if the request is unclear.`;
         stream: true,
       });
 
-      let accumulatedText = '';
-
       for await (const event of stream) {
         if (event.type === 'content_block_start') {
           if (event.content_block?.type === 'tool_use') {
-            const toolInput = event.content_block.input as Record<string, unknown>;
-            currentToolUses.push({
-              type: 'tool_use',
+            // Start accumulating tool input
+            pendingToolUse = {
               id: event.content_block.id,
               name: event.content_block.name,
-              input: toolInput,
-            });
-            yield {
-              type: 'tool_use',
-              content: '',
-              toolName: event.content_block.name,
-              toolInput,
+              inputAccumulator: '',
             };
+            console.log('[Agent] Tool use started:', pendingToolUse.name);
           }
         } else if (event.type === 'content_block_delta') {
           if (event.delta.type === 'text_delta') {
@@ -262,60 +271,83 @@ Always ask for clarification if the request is unclear.`;
               type: 'text',
               content: event.delta.text,
             };
+          } else if (event.delta.type === 'input_json_delta' && pendingToolUse) {
+            // Accumulate JSON chunks for tool input
+            pendingToolUse.inputAccumulator += event.delta.partial_json;
+            console.log('[Agent] Tool input chunk received, length:', event.delta.partial_json.length);
           }
         } else if (event.type === 'content_block_stop') {
-          // Check if we have tool uses to execute
-          if (currentToolUses.length > 0) {
-            for (const toolUse of currentToolUses) {
+          // Tool input is complete, parse and execute
+          if (pendingToolUse) {
+            try {
+              const toolInput = JSON.parse(pendingToolUse.inputAccumulator);
+              console.log('[Agent] Executing tool:', pendingToolUse.name, 'with input:', toolInput);
+
+              const toolUse: ToolUse = {
+                type: 'tool_use',
+                id: pendingToolUse.id,
+                name: pendingToolUse.name,
+                input: toolInput,
+              };
+
               const result = await this.executeTool(toolUse);
+              toolResults.push({ toolUseId: pendingToolUse.id, result });
+
               yield {
                 type: 'tool_result',
                 content: typeof result.content === 'string'
                   ? result.content
                   : JSON.stringify(result.content),
               };
+            } catch (error) {
+              console.error('[Agent] Tool execution error:', error);
+              yield {
+                type: 'error',
+                content: error instanceof Error ? error.message : 'Tool execution failed',
+              };
+            } finally {
+              pendingToolUse = null;
             }
+          }
+        }
+      }
 
-            // Continue conversation with tool results
-            const toolResultMessages: Anthropic.MessageParam[] = [
-              ...messages,
-              {
-                role: 'assistant',
-                content: currentToolUses,
-              },
-              {
-                role: 'user',
-                content: currentToolUses.map((tu) => {
-                  const result = this.executeToolSync(tu);
-                  return {
-                    type: 'tool_result',
-                    tool_use_id: tu.id,
-                    content: result,
-                  };
-                }),
-              },
-            ];
+      // If we executed tools, continue conversation with results
+      if (toolResults.length > 0) {
+        const toolResultMessages: Anthropic.MessageParam[] = [
+          ...messages,
+          {
+            role: 'assistant',
+            content: accumulatedText || 'I\'ll help you with that.',
+          },
+          {
+            role: 'user',
+            content: toolResults.map((tr) => ({
+              type: 'tool_result' as const,
+              tool_use_id: tr.toolUseId,
+              content: tr.result.content,
+            })),
+          },
+        ];
 
-            // Get final response after tool execution
-            const finalStream = await this.anthropic.messages.create({
-              model: 'claude-3-5-sonnet-20241022',
-              max_tokens: 4096,
-              system: this.systemPrompt,
-              messages: toolResultMessages,
-              stream: true,
-            });
+        // Get final response after tool execution
+        const finalStream = await this.anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4096,
+          system: this.systemPrompt,
+          messages: toolResultMessages,
+          stream: true,
+        });
 
-            for await (const finalEvent of finalStream) {
-              if (finalEvent.type === 'content_block_delta' &&
-                  finalEvent.delta.type === 'text_delta') {
-                yield {
-                  type: 'text',
-                  content: finalEvent.delta.text,
-                };
-              }
-            }
-
-            currentToolUses = [];
+        accumulatedText = '';
+        for await (const finalEvent of finalStream) {
+          if (finalEvent.type === 'content_block_delta' &&
+              finalEvent.delta.type === 'text_delta') {
+            accumulatedText += finalEvent.delta.text;
+            yield {
+              type: 'text',
+              content: finalEvent.delta.text,
+            };
           }
         }
       }
@@ -327,18 +359,6 @@ Always ask for clarification if the request is unclear.`;
     }
   }
 
-  /**
-   * Synchronous tool execution for second round
-   */
-  private executeToolSync(toolUse: ToolUse): string {
-    const tool = this.tools.get(toolUse.name);
-    if (!tool) {
-      return `Error: Unknown tool "${toolUse.name}"`;
-    }
-    // For sync context, return a placeholder
-    // Real implementation would use async/await properly
-    return JSON.stringify({ status: 'executed', tool: toolUse.name });
-  }
 }
 
 // ============================================================================
@@ -599,9 +619,9 @@ Format as a concise summary suitable for social media content creation.`;
           postsToday,
           postsRemaining: Math.max(0, 17 - postsToday),
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Check for rate limit errors
-        if (error.code === 429) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 429) {
           throw new Error('Rate limit exceeded. You can post 17 times per day on the free tier.');
         }
         throw error;

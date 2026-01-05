@@ -1,7 +1,7 @@
 {
-  "state": "TEST",
+  "state": "COMPLETE",
   "feature_id": "",
-  "entered_at": "2026-01-05T13:33:44+05:30",
+  "entered_at": "2026-01-05T21:58:53+05:30",
   "attempts": 1,
   "health_status": "HEALTHY",
   "history": [
@@ -40,7 +40,13 @@
       "to": "TEST",
       "at": "2026-01-05T13:35:29+05:30",
       "reason": "Manual revert - testing transition-state.sh"
+    },
+    {
+      "from": "TEST",
+      "to": "COMPLETE",
+      "at": "2026-01-05T21:58:53+05:30",
+      "reason": "Fixed OAuth redirect loop + persona crash. All tests passing"
     }
   ],
-  "last_updated": "2026-01-05T13:35:29+05:30"
+  "last_updated": "2026-01-05T21:58:53+05:30"
 }

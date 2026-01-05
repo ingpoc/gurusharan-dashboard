@@ -1,9 +1,8 @@
 #!/bin/bash
 # session-entry.sh
 #
-# Session entry protocol for DESIGN-v2.
-# Runs 3 phases: Safety → State → Context
-# Outputs JSON for orchestrator to consume.
+# Session entry: Execute orchestrator logic, output actions only.
+# stdout → model context, stderr → user terminal
 
 set -euo pipefail
 
@@ -11,39 +10,29 @@ PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-.}"
 PROGRESS_DIR="$PROJECT_ROOT/.claude/progress"
 CONFIG_FILE="$PROJECT_ROOT/.claude/config/project.json"
 
-# Initialize outputs
-HEALTH_STATUS="healthy"
+# Initialize
 CURRENT_STATE="START"
-SESSION_SUMMARY=""
-RECENT_FILES=()
-UNCOMMITTED=false
-BRANCH=""
+PENDING=0
+HEALTH_STATUS="healthy"
 
-# Phase 1: Safety
-echo "=== Phase 1: Safety ===" >&2
+# === User output (stderr) ===
+echo "Session: $PROJECT_ROOT" >&2
 
-# pwd
-echo "Working directory: $PROJECT_ROOT" >&2
-
-# git log
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    BRANCH=$(git branch --show-current)
-    echo "Git branch: $BRANCH" >&2
-    git log -5 --oneline >&2 || true
-
-    # Check for uncommitted changes
-    if ! git diff --quiet || ! git diff --cached --quiet; then
-        UNCOMMITTED=true
-    fi
+# === Read state ===
+if [[ -f "$PROGRESS_DIR/state.json" ]]; then
+    CURRENT_STATE=$(jq -r '.state // "START"' "$PROGRESS_DIR/state.json")
 fi
 
-# Health check from config
+if [[ -f "$PROGRESS_DIR/feature-list.json" ]]; then
+    PENDING=$(jq '[.features[] | select(.status=="pending")] | length' "$PROGRESS_DIR/feature-list.json" 2>/dev/null || echo "0")
+fi
+
+# === Health check ===
 if [[ -f "$CONFIG_FILE" ]]; then
     HEALTH_CHECK=$(jq -r '.health_check // empty' "$CONFIG_FILE" 2>/dev/null)
     if [[ -n "$HEALTH_CHECK" ]]; then
-        echo "Running health check..." >&2
         if eval "$HEALTH_CHECK" >/dev/null 2>&1; then
-            echo "✓ Health check passed" >&2
+            echo "✓ Healthy" >&2
         else
             echo "✗ Health check failed" >&2
             HEALTH_STATUS="broken"
@@ -51,50 +40,57 @@ if [[ -f "$CONFIG_FILE" ]]; then
     fi
 fi
 
-# Phase 2: State
-echo "" >&2
-echo "=== Phase 2: State ===" >&2
+# === Orchestrator logic (state machine) ===
+ACTION=""
+NEXT_STATE=""
 
-if [[ -f "$PROGRESS_DIR/state.json" ]]; then
-    CURRENT_STATE=$(jq -r '.state // "START"' "$PROGRESS_DIR/state.json")
-    echo "Current state: $CURRENT_STATE" >&2
-else
-    echo "No state file found, assuming START" >&2
+case "$CURRENT_STATE" in
+    START)
+        if [[ ! -f "$PROGRESS_DIR/feature-list.json" ]]; then
+            ACTION="Initialize project: run /initialization skill"
+            NEXT_STATE="INIT"
+        else
+            ACTION="Start feature work"
+            NEXT_STATE="IMPLEMENT"
+        fi
+        ;;
+    INIT)
+        ACTION="Complete initialization, then transition to IMPLEMENT"
+        NEXT_STATE="IMPLEMENT"
+        ;;
+    IMPLEMENT)
+        if [[ "$PENDING" -eq 0 ]]; then
+            ACTION="All features complete. Run tests, then transition to TEST"
+            NEXT_STATE="TEST"
+        else
+            ACTION="Implement next pending feature ($PENDING remaining)"
+        fi
+        ;;
+    TEST)
+        ACTION="Run test suite. If passing → COMPLETE, if failing → IMPLEMENT"
+        ;;
+    COMPLETE)
+        ACTION="All done. Review and deploy."
+        ;;
+    *)
+        ACTION="Unknown state. Check .claude/progress/state.json"
+        ;;
+esac
+
+# === Output to model (stdout) ===
+echo "# Session Context"
+echo ""
+echo "**State:** $CURRENT_STATE"
+echo "**Pending:** $PENDING features"
+echo "**Health:** $HEALTH_STATUS"
+echo ""
+echo "**Next action:** $ACTION"
+
+if [[ -n "$NEXT_STATE" ]]; then
+    echo ""
+    echo "**To transition:** \`.claude/scripts/enter-state.sh $NEXT_STATE\`"
 fi
 
-if [[ -f "$PROGRESS_DIR/feature-list.json" ]]; then
-    PENDING=$(jq '[.features[] | select(.status=="pending")] | length' "$PROGRESS_DIR/feature-list.json")
-    echo "Pending features: $PENDING" >&2
-fi
-
-# Phase 3: Context
-echo "" >&2
-echo "=== Phase 3: Context ===" >&2
-
-if [[ -f "$PROGRESS_DIR/session-state.json" ]]; then
-    SESSION_SUMMARY=$(jq -r '.session_summary // ""' "$PROGRESS_DIR/session-state.json")
-    echo "Last session: $SESSION_SUMMARY" >&2
-fi
-
-# Recent files
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    mapfile -t RECENT_FILES < <(git status --short | awk '{print $2}' | head -5)
-    echo "Recent files: ${RECENT_FILES[*]}" >&2
-fi
-
-# Output JSON
-jq -n \
-    --arg health "$HEALTH_STATUS" \
-    --arg state "$CURRENT_STATE" \
-    --arg summary "$SESSION_SUMMARY" \
-    --arg branch "$BRANCH" \
-    --argjson files "$(printf '%s\n' "${RECENT_FILES[@]}" | jq -R 'split("\n") | map(select(length > 0))')" \
-    --argjson uncommitted "$UNCOMMITTED" \
-    '{
-        health_status: $health,
-        current_state: $state,
-        session_summary: $summary,
-        branch: $branch,
-        recent_files: $files,
-        uncommitted_changes: $uncommitted
-    }'
+echo ""
+echo "---"
+echo "Load skills on-demand: /implementation, /testing, /initialization"

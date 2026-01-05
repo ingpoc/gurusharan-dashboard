@@ -23,7 +23,7 @@ def main():
     content = tool_input.get("content", "") or tool_input.get("new_string", "")
 
     # Only check feature-list.json writes
-    if "feature-list.json" not in file_path:
+    if os.path.basename(file_path) != "feature-list.json":
         sys.exit(0)
 
     # Only check when marking completed:true

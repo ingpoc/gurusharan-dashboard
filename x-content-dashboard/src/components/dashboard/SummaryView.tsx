@@ -22,32 +22,32 @@ export function SummaryView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+
+    const fetchAccountStatus = async () => {
+      try {
+        const res = await fetch('/api/auth/x/status');
+        if (res.ok) {
+          const data = await res.json();
+          setAccount(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch account status:', error);
+      }
+    };
+
     Promise.all([fetchStats(), fetchAccountStatus()]).finally(() => setLoading(false));
   }, []);
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/stats');
-      if (res.ok) {
-        const data = await res.json();
-        setStats(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    }
-  };
-
-  const fetchAccountStatus = async () => {
-    try {
-      const res = await fetch('/api/auth/x/status');
-      if (res.ok) {
-        const data = await res.json();
-        setAccount(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch account status:', error);
-    }
-  };
 
   if (loading) {
     return (

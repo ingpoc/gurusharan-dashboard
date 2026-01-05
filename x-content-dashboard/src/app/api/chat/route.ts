@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { ContentCreatorAgent, defaultTools } from '@/lib/agent';
 
-export const runtime = 'edge';
+// Use Node.js runtime (required for Prisma and twitter-api-v2)
+export const runtime = 'nodejs';
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
 

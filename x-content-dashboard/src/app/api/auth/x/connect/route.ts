@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generatePKCE, getAuthUrl, storeOAuthState } from '@/lib/x-oauth';
+import { generatePKCE, getAuthUrl } from '@/lib/x-oauth';
 
 // Initiate X OAuth flow
 export async function GET(req: NextRequest) {
@@ -7,13 +7,11 @@ export async function GET(req: NextRequest) {
     // Generate PKCE verifier and challenge
     const { verifier, challenge } = await generatePKCE();
 
-    // Generate random state parameter (CSRF protection)
-    const state = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    // Generate random state parameter with encoded verifier (no server storage needed)
+    const random = Array.from(crypto.getRandomValues(new Uint8Array(16)))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
-
-    // Store state + verifier (for callback verification)
-    storeOAuthState(state, verifier);
+    const state = `${random}.${btoa(verifier)}`;
 
     // Build authorization URL
     const authUrl = getAuthUrl(challenge, state);

@@ -222,6 +222,53 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+### transition-state.sh
+
+**Purpose:** Execute state transition with validation (uses validate-transition.sh)
+
+**Usage:**
+
+```bash
+.claude/scripts/transition-state.sh TEST "Tests passed"
+.claude/scripts/transition-state.sh IMPLEMENT "Starting feature X"
+```
+
+**What it does:**
+
+1. Validates state name (valid: START, INIT, IMPLEMENT, TEST, COMPLETE)
+2. Calls validate-transition.sh to ensure transition is allowed
+3. Adds entry to history array with timestamp and reason
+4. Preserves health_status, feature_id, and attempts
+5. Updates state, entered_at, and last_updated timestamps
+
+**Output:**
+
+```json
+{
+  "state": "TEST",
+  "entered_at": "2026-01-05T13:22:08+05:30",
+  "health_status": "HEALTHY",
+  "history": [
+    {
+      "from": "IMPLEMENT",
+      "to": "TEST",
+      "at": "2026-01-05T13:22:08+05:30",
+      "reason": "Tests passed"
+    }
+  ],
+  "last_updated": "2026-01-05T13:22:08+05:30"
+}
+```
+
+**Customize for:**
+
+- Additional state machine states
+- Custom validation rules
+- Additional metadata fields
+- State transition side effects
+
+---
+
 ### check-context.sh
 
 **Purpose:** Monitor token usage and trigger compression

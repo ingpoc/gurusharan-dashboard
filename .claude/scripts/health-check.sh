@@ -16,9 +16,15 @@
 
 set -e
 
-PROJECT_ROOT="x-content-dashboard"
+# Get script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Project root is 2 levels up from scripts/ directory
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+echo "Project root: $PROJECT_ROOT"
+NEXTJS_DIR="$PROJECT_ROOT/x-content-dashboard"
 NEXTJS_PORT=3000
-LOG_DIR="logs"
+LOG_DIR="$PROJECT_ROOT/logs"
 ISSUES_FOUND=0
 
 echo "=== Health Check ==="
@@ -96,7 +102,7 @@ check_infrastructure() {
   }
 
   # Customize these paths for your project
-  check_env_file "$PROJECT_ROOT/.env"
+  check_env_file "$NEXTJS_DIR/.env"
 
   # Exit if infrastructure issues found
   if [ $ISSUES_FOUND -eq 1 ]; then

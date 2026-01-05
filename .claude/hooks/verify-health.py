@@ -46,7 +46,7 @@ def main():
 
     # Check if this is an API project that needs health check
     project_type = config.get("project_type", "")
-    if project_type not in ["fastapi", "django", "node", "express", "api"]:
+    if project_type not in ["fastapi", "django", "node", "express", "api", "nextjs"]:
         # Not an API project, skip health check
         sys.exit(0)
 

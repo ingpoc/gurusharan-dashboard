@@ -50,7 +50,8 @@ def main():
     # Run tests
     try:
         result = subprocess.run(
-            test_command.split(),
+            test_command,
+            shell=True,
             capture_output=True,
             text=True,
             cwd=project_root,
@@ -67,9 +68,9 @@ def main():
     except subprocess.TimeoutExpired:
         print("BLOCKED: Tests timed out (>60s)", file=sys.stderr)
         sys.exit(2)
-    except FileNotFoundError:
-        print(f"BLOCKED: Test command not found: {test_command}", file=sys.stderr)
-        print(f"Update .claude/config/project.json with correct test_command", file=sys.stderr)
+    except Exception as e:
+        print(f"BLOCKED: Error running tests: {e}", file=sys.stderr)
+        print(f"Test command: {test_command}", file=sys.stderr)
         sys.exit(2)
     except Exception as e:
         print(f"BLOCKED: Error running tests: {e}", file=sys.stderr)

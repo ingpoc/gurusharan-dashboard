@@ -22,7 +22,14 @@ const TONE_OPTIONS = ['professional', 'casual', 'friendly', 'authoritative'];
 const STYLE_OPTIONS = ['informative', 'engaging', 'concise', 'storytelling'];
 
 export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
-  const [formData, setFormData] = useState<Persona>(persona);
+  const [formData, setFormData] = useState<Persona>({
+    name: persona.name || '',
+    topics: persona.topics || [],
+    tone: persona.tone || 'professional',
+    style: persona.style || 'informative',
+    hashtagUsage: persona.hashtagUsage ?? true,
+    emojiUsage: persona.emojiUsage ?? false,
+  });
   const [topicInput, setTopicInput] = useState('');
 
   const handleAddTopic = () => {
@@ -82,7 +89,7 @@ export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {formData.topics.map((topic) => (
+            {(formData.topics || []).map((topic) => (
               <span
                 key={topic}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm"

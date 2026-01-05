@@ -53,11 +53,22 @@ def main():
 
     issues = []
 
-    # Check required environment variables
+    # Check required environment variables or files
     required_env = config.get("required_env", [])
     for env_var in required_env:
-        if not os.environ.get(env_var):
-            issues.append(f"Environment variable not set: {env_var}")
+        # Check if it's a file path (contains / or starts with .)
+        if env_var.startswith("/") or "/" in env_var or env_var.startswith("."):
+            # Treat as file path - check relative to project root or in subdirectory
+            env_path = os.path.join(project_root, env_var)
+            if not os.path.exists(env_path):
+                # Try in x-content-dashboard subdirectory
+                alt_path = os.path.join(project_root, "x-content-dashboard", env_var)
+                if not os.path.exists(alt_path):
+                    issues.append(f"Required file not found: {env_var}")
+        else:
+            # Treat as environment variable
+            if not os.environ.get(env_var):
+                issues.append(f"Environment variable not set: {env_var}")
 
     # Check required services
     required_services = config.get("required_services", [])
