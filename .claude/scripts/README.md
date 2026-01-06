@@ -101,6 +101,56 @@ These scripts customize the Claude Code workflow for this project. They are copi
 
 ---
 
+### run-tests.sh
+
+**Purpose:** Batch API endpoint testing
+
+**Usage:**
+
+```bash
+./.claude/scripts/run-tests.sh                    # Test default (localhost:3000)
+./.claude/scripts/run-tests.sh http://localhost:3001  # Custom base URL
+```
+
+**What it does:**
+
+1. Tests all GET endpoints in batch
+2. Reports pass/fail with HTTP status codes
+3. Stores evidence in `/tmp/test-evidence/`
+4. Returns exit code 0 (all pass) or 1 (any fail)
+
+**Exit codes:**
+
+- `0` = All tests passed
+- `1` = One or more tests failed
+
+**Current endpoints tested:**
+
+- `/api/stats` - Usage statistics
+- `/api/autonomous/status` - Workflow status
+- `/api/drafts` - Draft management
+- `/api/personas` - Persona management
+- `/api/chat/sessions` - Chat sessions
+- `/api/auth/x/status` - X account status
+
+**Customize for:**
+
+- Add new API endpoints as they're created
+- Adjust expected status codes (not all are 200)
+- Add POST/PUT endpoint tests with data
+- Test with different base URLs (staging, production)
+
+**Update workflow:**
+
+When adding new API endpoints, update this script:
+
+```bash
+# Add new endpoint test
+test_endpoint "New Feature API" "/api/new-feature"
+```
+
+---
+
 ### restart-servers.sh
 
 **Purpose:** Kill processes on ports and restart frontend/backend servers
@@ -289,6 +339,42 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+## Testing Workflow
+
+**Recommended sequence before browser testing:**
+
+```bash
+# 1. Start servers
+./.claude/scripts/restart-servers.sh
+
+# 2. Check health (auto-runs by orchestrator, but manual check is useful)
+./.claude/scripts/health-check.sh
+
+# 3. Run API tests
+./.claude/scripts/run-tests.sh
+
+# 4. Browser testing (if API tests pass)
+# Now use browser automation for UI testing
+```
+
+**Why this order:**
+
+1. **restart-servers**: Clean slate - kills old processes
+2. **health-check**: Infrastructure diagnosis - fails fast on root cause
+3. **run-tests**: API validation - backend working before UI testing
+4. **Browser testing**: UI validation - only if backend is healthy
+
+**Exit code flow:**
+
+```bash
+./.claude/scripts/restart-servers.sh && \
+./.claude/scripts/health-check.sh && \
+./.claude/scripts/run-tests.sh && \
+echo "✅ Ready for browser testing"
+```
+
+---
+
 ## Customization Workflow
 
 ### During Implementation
@@ -316,7 +402,7 @@ git commit -m "feat: customize health-check for multi-service architecture"
 
 Original templates are maintained in:
 
-```
+```bash
 ~/.claude/skills/initialization/templates/
 ```
 

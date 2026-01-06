@@ -45,6 +45,8 @@ next-env.d.ts
 # logs
 logs/
 
+
 # MCP (local only)
 mcp/
 .mcp.json
+
