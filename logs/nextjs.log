@@ -428,3 +428,43 @@ prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` F
 ✓ Compiled in 40ms
 ✓ Compiled in 41ms
 ✓ Compiled in 38ms
+ GET / 200 in 28ms (compile: 3ms, render: 25ms)
+prisma:query SELECT 1
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Settings`.`id`, `main`.`Settings`.`activePersonaId`, `main`.`Settings`.`xUserId`, `main`.`Settings`.`xUsername`, `main`.`Settings`.`xAccessToken`, `main`.`Settings`.`xRefreshToken`, `main`.`Settings`.`xTokenExpiry`, `main`.`Settings`.`createdAt`, `main`.`Settings`.`updatedAt` FROM `main`.`Settings` WHERE 1=1 LIMIT ? OFFSET ?
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/auth/x/status 200 in 13ms (compile: 7ms, render: 6ms)
+ GET /api/stats 200 in 17ms (compile: 5ms, render: 12ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 5ms (compile: 2ms, render: 3ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 5ms (compile: 1470µs, render: 3ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /chat 200 in 100ms (compile: 49ms, render: 51ms)
+prisma:query SELECT 1
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`ChatSession`.`id`, `main`.`ChatSession`.`messages`, `main`.`ChatSession`.`createdAt`, `main`.`ChatSession`.`updatedAt` FROM `main`.`ChatSession` WHERE 1=1 ORDER BY `main`.`ChatSession`.`updatedAt` DESC LIMIT ? OFFSET ?
+ GET /api/chat/sessions 200 in 38ms (compile: 21ms, render: 17ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 45ms (compile: 5ms, render: 40ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/chat/sessions 200 in 8ms (compile: 3ms, render: 5ms)
+prisma:query SELECT `main`.`ChatSession`.`id`, `main`.`ChatSession`.`messages`, `main`.`ChatSession`.`createdAt`, `main`.`ChatSession`.`updatedAt` FROM `main`.`ChatSession` WHERE 1=1 ORDER BY `main`.`ChatSession`.`updatedAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 9ms (compile: 5ms, render: 4ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 8ms (compile: 4ms, render: 5ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE `main`.`Post`.`postedAt` >= ? LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Post`.`id` FROM `main`.`Post` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Draft`.`id` FROM `main`.`Draft` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/stats 200 in 6ms (compile: 1959µs, render: 4ms)
+✓ Compiled in 15ms
+[?25h
