@@ -1,4 +1,4 @@
 {
-  "checkpoint_at": "2026-01-06T09:57:38Z",
+  "checkpoint_at": "2026-01-06T10:04:10Z",
   "summary": "Reviewed script customizations in .claude/scripts/ and verified they match initialization skill templates. Updated orchestrator skill to use AskUserQuestion when dev environment is broken, giving users 3 options: fix automatically, continue anyway, or get manual instructions. Updated plan_reference field tracking for features (AI-generated vs user-generated)."
 }
