@@ -9,85 +9,54 @@ interface MainLayoutProps {
   title?: string;
 }
 
+/**
+ * DRAMS Main Layout Component
+ *
+ * Dieter Rams Principles:
+ * - Understandable: Clear layout structure
+ * - Unobtrusive: Responsive sidebar behavior
+ * - Thorough: Mobile overlay, desktop sidebar
+ */
 export function MainLayout({ children, title }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "var(--background)",
-      }}
-    >
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Desktop Sidebar */}
-      <div className="desktop-sidebar">
+      <div className="hidden lg:block desktop-sidebar">
         <Sidebar />
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            zIndex: 40,
-          }}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden mobile-overlay"
           onClick={() => setSidebarOpen(false)}
-          className="mobile-overlay"
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile Sidebar */}
       <div
-        className="mobile-sidebar"
-        style={{
-          position: "fixed",
-          left: sidebarOpen ? 0 : "-240px",
-          top: 0,
-          zIndex: 50,
-          transition: "left 0.3s ease",
-        }}
+        className={`fixed top-0 z-50 h-full transition-transform duration-300 lg:hidden mobile-sidebar ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div className="flex-1 flex flex-col">
         <Header
           title={title}
+          showMobileMenu={true}
           onMobileMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          sidebarOpen={sidebarOpen}
         />
-        <main
-          style={{
-            flex: 1,
-            padding: "1.5rem",
-            maxWidth: "var(--max-width)",
-            width: "100%",
-            margin: "0 auto",
-          }}
-        >
+        <main className="flex-1 p-6 max-w-[1200px] w-full mx-auto">
           {children}
         </main>
       </div>
-
-      <style jsx global>{`
-        @media (max-width: 768px) {
-          .desktop-sidebar {
-            display: none;
-          }
-          .mobile-menu-btn {
-            display: block !important;
-          }
-        }
-        @media (min-width: 769px) {
-          .mobile-sidebar,
-          .mobile-overlay {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

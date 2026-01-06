@@ -1,11 +1,27 @@
 /**
- * Drams-inspired animation configurations for Framer Motion
- * Spring-based animations with stiffness: 170, damping: 30
+ * DRAMS Design System - Framer Motion Animations
+ *
+ * Dieter Rams Principles:
+ * - Subtle, purposeful motion
+ * - Doesn't distract from content
+ * - Smooth, spring-based transitions
+ * - Respects user motion preferences
  */
 
+// ============================================
+// Reduced Motion Check
+// ============================================
+export const prefersReducedMotion =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+
+// ============================================
+// Spring Config
+// ============================================
 export const springConfig = {
-  stiffness: 170,
-  damping: 30,
+  stiffness: 150,
+  damping: 20,
 };
 
 export const springTransition = {
@@ -13,7 +29,11 @@ export const springTransition = {
   ...springConfig,
 };
 
-// Fade in animation
+// ============================================
+// Preset Animations
+// ============================================
+
+// Fade in
 export const fadeIn = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
@@ -23,81 +43,86 @@ export const fadeIn = {
 
 // Slide up with fade
 export const slideUp = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
+  exit: { opacity: 0, y: -5 },
   transition: springTransition,
 };
 
 // Slide in from left
 export const slideInLeft = {
-  initial: { opacity: 0, x: -20 },
+  initial: { opacity: 0, x: -10 },
   animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -10 },
+  exit: { opacity: 0, x: -5 },
   transition: springTransition,
 };
 
 // Slide in from right
 export const slideInRight = {
-  initial: { opacity: 0, x: 20 },
+  initial: { opacity: 0, x: 10 },
   animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 10 },
+  exit: { opacity: 0, x: 5 },
   transition: springTransition,
 };
 
-// Scale up animation
-export const scaleUp = {
-  initial: { opacity: 0, scale: 0.95 },
+// Scale in (subtle)
+export const scaleIn = {
+  initial: { opacity: 0, scale: 0.97 },
   animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
+  exit: { opacity: 0, scale: 0.97 },
   transition: springTransition,
 };
 
-// Stagger children animation helper
+// ============================================
+// Stagger Helpers
+// ============================================
 export const staggerContainer = {
   animate: {
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.04,
     },
   },
 };
 
-// Item for stagger
 export const staggerItem = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 5 },
   animate: { opacity: 1, y: 0 },
 };
 
-// Button hover/tap states
+// ============================================
+// Component-Specific Animations
+// ============================================
+
+// Button - subtle hover/tap
 export const buttonVariants = {
   initial: { scale: 1 },
-  hover: { scale: 1.02 },
-  tap: { scale: 0.98 },
+  hover: prefersReducedMotion ? {} : { scale: 1.02 },
+  tap: prefersReducedMotion ? {} : { scale: 0.98 },
 };
 
-// Card hover effect
+// Card - minimal lift
 export const cardHover = {
   rest: {
     scale: 1,
-    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    y: 0,
   },
   hover: {
-    scale: 1.01,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    scale: 1.005,
+    y: -2,
     transition: springTransition,
   },
 };
 
-// Message bubble animation
+// Message bubble
 export const messageBubble = {
-  initial: { opacity: 0, y: 10, scale: 0.95 },
+  initial: { opacity: 0, y: 5, scale: 0.98 },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
       ...springTransition,
-      delay: 0.05,
+      delay: 0.03,
     },
   },
 };
@@ -105,11 +130,35 @@ export const messageBubble = {
 // Typing indicator dots
 export const typingDot = {
   animate: {
-    y: [0, -5, 0],
+    y: [0, -4, 0],
     transition: {
-      duration: 0.6,
+      duration: 0.8,
       repeat: Infinity,
       ease: "easeInOut",
     },
   },
+};
+
+// Toast notification slide in
+export const toastSlide = {
+  initial: { opacity: 0, x: 100, y: 0 },
+  animate: { opacity: 1, x: 0, y: 0 },
+  exit: { opacity: 0, x: 50, y: 0 },
+  transition: springTransition,
+};
+
+// Modal backdrop
+export const modalBackdrop = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.2 },
+};
+
+// Modal content
+export const modalContent = {
+  initial: { opacity: 0, scale: 0.97 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.97 },
+  transition: springTransition,
 };

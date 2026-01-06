@@ -1,45 +1,79 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { cardHover } from "@/lib/animations";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { HTMLAttributes } from "react";
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  hoverable?: boolean;
-  padding?: "none" | "sm" | "md" | "lg";
-}
+type CardPadding = "none" | "sm" | "md" | "lg";
+type CardVariant = "default" | "empty" | "loading";
 
-const paddingStyles = {
-  none: "0",
-  sm: "1rem",
-  md: "1.5rem",
-  lg: "2rem",
+// Common props excluding conflicting animation handlers
+type BaseCardProps = {
+  hoverable?: boolean;
+  padding?: CardPadding;
+  variant?: CardVariant;
+  className?: string;
+  children: React.ReactNode;
 };
 
+type CardProps = BaseCardProps & Omit<HTMLAttributes<HTMLDivElement>, keyof BaseCardProps>;
+
+/**
+ * DRAMS Card Component
+ *
+ * Dieter Rams Principles:
+ * - Aesthetic: Minimal, clean design
+ * - Unobtrusive: Subtle hover effects
+ * - Thorough: Empty and loading states
+ */
 export function Card({
   hoverable = false,
   padding = "md",
-  style,
+  variant = "default",
+  className = "",
   children,
-  className,
   ...props
 }: CardProps) {
-  const baseStyle: React.CSSProperties = {
-    background: "var(--card-bg)",
-    borderRadius: "8px",
-    border: "1px solid var(--border)",
-    padding: paddingStyles[padding],
-    ...style,
+  // Padding classes
+  const paddingClasses: Record<CardPadding, string> = {
+    none: "",
+    sm: "p-4",
+    md: "p-6",
+    lg: "p-8",
   };
+
+  // Base classes - card styling
+  const baseClasses =
+    "bg-white dark:bg-slate-900 " +
+    "border border-slate-200 dark:border-slate-700 " +
+    "rounded-lg " +
+    "shadow-sm";
+
+  // Hover classes - subtle lift
+  const hoverClasses =
+    "hover:border-slate-300 dark:hover:border-slate-600 " +
+    "hover:shadow-md " +
+    "transition-all duration-200";
+
+  // Empty state classes
+  const emptyClasses =
+    variant === "empty"
+      ? "flex flex-col items-center justify-center text-center min-h-[200px]"
+      : "";
+
+  // Loading state classes
+  const loadingClasses = variant === "loading" ? "animate-pulse" : "";
+
+  const cardClassName = `${baseClasses} ${paddingClasses[padding]} ${
+    hoverable ? hoverClasses : ""
+  } ${emptyClasses} ${loadingClasses} ${className}`;
 
   if (hoverable) {
     return (
       <motion.div
-        variants={cardHover}
-        initial="rest"
-        whileHover="hover"
-        style={baseStyle}
-        className={className}
+        initial={{ scale: 1, y: 0 }}
+        whileHover={{ scale: 1.005, y: -2 }}
+        transition={{ duration: 0.2 }}
+        className={cardClassName}
       >
         {children}
       </motion.div>
@@ -47,26 +81,23 @@ export function Card({
   }
 
   return (
-    <div style={baseStyle} className={className} {...props}>
+    <div className={cardClassName} {...props}>
       {children}
     </div>
   );
 }
 
-// Card subcomponents
+// ============================================
+// Card Subcomponents
+// ============================================
+
 export function CardHeader({
   children,
-  style,
+  className = "",
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      style={{
-        marginBottom: "1rem",
-        ...style,
-      }}
-      {...props}
-    >
+    <div className={`mb-4 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -74,18 +105,12 @@ export function CardHeader({
 
 export function CardTitle({
   children,
-  style,
+  className = "",
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      style={{
-        fontSize: "1.125rem",
-        fontWeight: 500,
-        color: "var(--foreground)",
-        margin: 0,
-        ...style,
-      }}
+      className={`text-lg font-medium text-slate-900 dark:text-slate-50 m-0 ${className}`}
       {...props}
     >
       {children}
@@ -95,18 +120,12 @@ export function CardTitle({
 
 export function CardDescription({
   children,
-  style,
+  className = "",
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      style={{
-        fontSize: "0.875rem",
-        color: "var(--muted)",
-        margin: 0,
-        marginTop: "0.25rem",
-        ...style,
-      }}
+      className={`text-sm text-slate-600 dark:text-slate-400 mt-1 mb-0 ${className}`}
       {...props}
     >
       {children}
@@ -116,33 +135,99 @@ export function CardDescription({
 
 export function CardContent({
   children,
-  style,
+  className = "",
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return <div className={className} {...props}>{children}</div>;
+}
+
+export function CardFooter({
+  children,
+  className = "",
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div style={style} {...props}>
+    <div
+      className={`mt-4 flex items-center gap-2 ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );
 }
 
-export function CardFooter({
-  children,
-  style,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+// ============================================
+// Card States
+// ============================================
+
+interface EmptyStateProps {
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}
+
+/**
+ * Empty State Component
+ *
+ * Dieter Rams Principles:
+ * - Useful: Clear next steps
+ * - Understandable: Helpful messaging
+ */
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: EmptyStateProps) {
   return (
-    <div
-      style={{
-        marginTop: "1rem",
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        ...style,
-      }}
-      {...props}
-    >
-      {children}
-    </div>
+    <Card variant="empty" padding="lg">
+      {icon && (
+        <div className="text-slate-400 dark:text-slate-600 mb-4">
+          {icon}
+        </div>
+      )}
+      <h4 className="text-base font-medium text-slate-900 dark:text-slate-50 mb-2">
+        {title}
+      </h4>
+      {description && (
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm">
+          {description}
+        </p>
+      )}
+      {action && <div className="mt-4">{action}</div>}
+    </Card>
+  );
+}
+
+/**
+ * Loading Skeleton Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Shows content is loading
+ * - Unobtrusive: Subtle animation
+ */
+export function CardSkeleton({
+  lines = 3,
+  className = "",
+}: {
+  lines?: number;
+  className?: string;
+}) {
+  return (
+    <Card variant="loading" padding="md" className={className}>
+      {/* Title skeleton */}
+      <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4" />
+
+      {/* Line skeletons */}
+      {Array.from({ length: lines }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-4 bg-slate-200 dark:bg-slate-700 rounded mb-2 last:mb-0 ${
+            i === lines - 1 ? "w-2/3" : "w-full"
+          }`}
+        />
+      ))}
+    </Card>
   );
 }

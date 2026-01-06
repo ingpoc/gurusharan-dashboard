@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AccountConnection } from '@/components/x';
 import { PersonaEditor } from '@/components/settings';
-import { MainLayout, Header } from '@/components/layout';
+import { MainLayout } from '@/components/layout';
 
 interface SettingsData {
   persona: {
@@ -58,9 +58,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Settings">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Header title="Settings" />
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Card } from '@/components/ui';
+import { Card, CardSkeleton, EmptyState } from '@/components/ui';
 
 interface Stats {
   postsToday: number;
@@ -16,10 +16,19 @@ interface AccountStatus {
   username: string | null;
 }
 
+/**
+ * DRAMS Summary View Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Accurate stats, loading states
+ * - Thorough: Empty state, account status
+ * - Aesthetic: Clean stat cards with minimal colors
+ */
 export function SummaryView() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [account, setAccount] = useState<AccountStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -28,9 +37,12 @@ export function SummaryView() {
         if (res.ok) {
           const data = await res.json();
           setStats(data);
+        } else {
+          setError('Failed to load stats');
         }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
+        setError('Failed to load stats');
       }
     };
 
@@ -49,12 +61,21 @@ export function SummaryView() {
     Promise.all([fetchStats(), fetchAccountStatus()]).finally(() => setLoading(false));
   }, []);
 
+  if (error) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <ErrorCard />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
-        ))}
+        <CardSkeleton lines={2} />
+        <CardSkeleton lines={2} />
+        <CardSkeleton lines={2} />
+        <CardSkeleton lines={2} />
       </div>
     );
   }
@@ -65,19 +86,19 @@ export function SummaryView() {
         title="Posts Today"
         value={stats?.postsToday ?? 0}
         subtitle={`${stats?.postsRemaining ?? 17} remaining`}
-        color="#ff611a"
+        variant="default"
       />
       <StatCard
         title="Total Posts"
         value={stats?.totalPosts ?? 0}
         subtitle="All time"
-        color="#22c55e"
+        variant="success"
       />
       <StatCard
         title="Drafts"
         value={stats?.totalDrafts ?? 0}
         subtitle="Saved drafts"
-        color="#3b82f6"
+        variant="info"
       />
       <AccountCard account={account} />
     </div>
@@ -88,13 +109,19 @@ function StatCard({
   title,
   value,
   subtitle,
-  color,
+  variant = 'default',
 }: {
   title: string;
   value: number;
   subtitle: string;
-  color: string;
+  variant?: 'default' | 'success' | 'info';
 }) {
+  const variantStyles = {
+    default: 'text-slate-900 dark:text-slate-50',
+    success: 'text-success',
+    info: 'text-info',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -103,9 +130,11 @@ function StatCard({
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <Card hoverable>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>{title}</p>
-        <p style={{ fontSize: '2rem', fontWeight: 600, color, marginBottom: '0.25rem' }}>{value}</p>
-        <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>{subtitle}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{title}</p>
+        <p className={`text-3xl font-semibold mb-1 ${variantStyles[variant]}`}>
+          {value}
+        </p>
+        <p className="text-xs text-slate-600 dark:text-slate-500 m-0">{subtitle}</p>
       </Card>
     </motion.div>
   );
@@ -120,27 +149,53 @@ function AccountCard({ account }: { account: AccountStatus | null }) {
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <Card hoverable>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>X Account</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">X Account</p>
         {account?.connected ? (
           <>
-            <p style={{ fontSize: '1.125rem', fontWeight: 600, color: '#22c55e', marginBottom: '0.25rem' }}>
+            <p className="text-lg font-semibold text-success mb-1">
               @{account.username}
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>Connected</p>
+            <p className="text-xs text-slate-600 dark:text-slate-500 m-0">Connected</p>
           </>
         ) : (
           <>
-            <p style={{ fontSize: '1.125rem', fontWeight: 600, color: '#ef4444', marginBottom: '0.25rem' }}>
+            <p className="text-lg font-semibold text-error mb-1">
               Not Connected
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>
-              <a href="/settings" style={{ color: '#ff611a', textDecoration: 'none' }}>
+            <p className="text-xs text-slate-600 dark:text-slate-500 m-0">
+              <a
+                href="/settings"
+                className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+              >
                 Connect in Settings →
               </a>
             </p>
           </>
         )}
       </Card>
+    </motion.div>
+  );
+}
+
+function ErrorCard() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="col-span-full"
+    >
+      <EmptyState
+        title="Unable to load dashboard"
+        description="There was a problem loading your statistics. Please try again."
+        action={
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-900 dark:bg-slate-50 rounded-md hover:bg-slate-800 dark:hover:bg-white transition-colors"
+          >
+            Retry
+          </button>
+        }
+      />
     </motion.div>
   );
 }

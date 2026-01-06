@@ -14,6 +14,14 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * DRAMS Error Boundary Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Shows actual error message
+ * - Thorough: Provides recovery action
+ * - Understandable: Clear title and description
+ */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -35,31 +43,16 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
-          <Card style={{ maxWidth: '500px', width: '100%' }}>
+        <div className="p-8 flex justify-center">
+          <Card className="max-w-[500px] w-full">
             <CardHeader>
               <CardTitle>Something went wrong</CardTitle>
               <CardDescription>An unexpected error occurred</CardDescription>
             </CardHeader>
             <CardContent>
               {this.state.error && (
-                <div
-                  style={{
-                    background: '#fee2e2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '6px',
-                    padding: '0.75rem',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '0.875rem',
-                      color: '#991b1b',
-                      margin: 0,
-                      fontFamily: 'monospace',
-                    }}
-                  >
+                <div className="bg-error-bg border border-error rounded-md p-3 mb-4">
+                  <p className="text-sm text-error m-0 font-mono">
                     {this.state.error.message}
                   </p>
                 </div>

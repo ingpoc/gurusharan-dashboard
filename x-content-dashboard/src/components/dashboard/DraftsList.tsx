@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  EmptyState,
+  CardSkeleton,
+} from '@/components/ui';
 import { Button } from '@/components/ui';
 import { staggerItem } from '@/lib/animations';
 
@@ -16,11 +25,22 @@ interface Draft {
   updatedAt: string;
 }
 
+/**
+ * DRAMS Drafts List Component
+ *
+ * Dieter Rams Principles:
+ * - Useful: Clear actions (edit, post, delete)
+ * - Understandable: Status badges, dates visible
+ * - Thorough: Loading, empty, and error states
+ */
 export function DraftsList() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [postingId, setPostingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDrafts();
@@ -32,9 +52,12 @@ export function DraftsList() {
       if (res.ok) {
         const data = await res.json();
         setDrafts(data);
+      } else {
+        setError('Failed to load drafts');
       }
     } catch (error) {
       console.error('Failed to fetch drafts:', error);
+      setError('Failed to load drafts');
     } finally {
       setLoading(false);
     }
@@ -43,13 +66,19 @@ export function DraftsList() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this draft?')) return;
 
+    setDeletingId(id);
     try {
       const res = await fetch(`/api/drafts?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setDrafts(drafts.filter((d) => d.id !== id));
+      } else {
+        setError('Failed to delete draft');
       }
     } catch (error) {
       console.error('Failed to delete draft:', error);
+      setError('Failed to delete draft');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -72,9 +101,12 @@ export function DraftsList() {
         setDrafts(drafts.map((d) => (d.id === editingId ? { ...d, content: editContent } : d)));
         setEditingId(null);
         setEditContent('');
+      } else {
+        setError('Failed to save draft');
       }
     } catch (error) {
       console.error('Failed to update draft:', error);
+      setError('Failed to save draft');
     }
   };
 
@@ -86,6 +118,7 @@ export function DraftsList() {
   const handlePostNow = async (id: string) => {
     if (!confirm('Post this draft to X now?')) return;
 
+    setPostingId(id);
     try {
       const res = await fetch('/api/drafts', {
         method: 'POST',
@@ -97,49 +130,71 @@ export function DraftsList() {
         setDrafts(drafts.filter((d) => d.id !== id));
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to post');
+        setError(data.error || 'Failed to post');
       }
     } catch (error) {
       console.error('Failed to post draft:', error);
+      setError('Failed to post draft');
+    } finally {
+      setPostingId(null);
     }
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
-        ))}
+      <div className="flex flex-col gap-4">
+        <CardSkeleton lines={4} />
+        <CardSkeleton lines={4} />
+        <CardSkeleton lines={4} />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <EmptyState
+        title="Error loading drafts"
+        description={error}
+        action={
+          <button
+            onClick={fetchDrafts}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-900 dark:bg-slate-50 rounded-md hover:bg-slate-800 dark:hover:bg-white transition-colors"
+          >
+            Retry
+          </button>
+        }
+      />
     );
   }
 
   if (drafts.length === 0) {
     return (
-      <Card>
-        <CardContent>
-          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <p style={{ color: 'var(--muted)' }}>No drafts yet</p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>
-              Start a chat to create your first draft
-            </p>
-            <Button style={{ marginTop: '1rem' }} onClick={() => (window.location.href = '/chat')}>
-              Go to Chat
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EmptyState
+        title="No drafts yet"
+        description="Start a chat to create your first draft"
+        action={
+          <Button onClick={() => (window.location.href = '/chat')}>
+            Go to Chat
+          </Button>
+        }
+      />
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="flex flex-col gap-4">
       <AnimatePresence>
         {drafts.map((draft) => (
-          <motion.div key={draft.id} variants={staggerItem} initial="initial" animate="animate" exit={{ opacity: 0, height: 0 }}>
+          <motion.div
+            key={draft.id}
+            variants={staggerItem}
+            initial="initial"
+            animate="animate"
+            exit={{ opacity: 0, height: 0 }}
+          >
             <Card>
               <CardHeader>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="flex justify-between items-start">
                   <div>
                     <CardTitle>Draft</CardTitle>
                     <CardDescription>
@@ -155,35 +210,17 @@ export function DraftsList() {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    style={{
-                      width: '100%',
-                      minHeight: '120px',
-                      padding: '0.75rem',
-                      border: '1px solid var(--border)',
-                      borderRadius: '6px',
-                      fontSize: '0.9375rem',
-                      fontFamily: 'inherit',
-                      resize: 'vertical',
-                    }}
+                    className="w-full min-h-[120px] px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 resize-y"
                   />
                 ) : (
-                  <p
-                    style={{
-                      fontSize: '0.9375rem',
-                      color: 'var(--foreground)',
-                      lineHeight: '1.6',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words m-0 text-slate-900 dark:text-slate-50">
                     {draft.content}
                   </p>
                 )}
               </CardContent>
               <CardFooter>
                 {editingId === draft.id ? (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
+                  <div className="flex gap-2 ml-auto">
                     <Button size="sm" variant="ghost" onClick={handleCancel}>
                       Cancel
                     </Button>
@@ -192,16 +229,27 @@ export function DraftsList() {
                     </Button>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
+                  <div className="flex gap-2 ml-auto">
                     <Button size="sm" variant="secondary" onClick={() => handleEdit(draft)}>
                       Edit
                     </Button>
                     {draft.status === 'DRAFT' && (
-                      <Button size="sm" onClick={() => handlePostNow(draft.id)}>
+                      <Button
+                        size="sm"
+                        onClick={() => handlePostNow(draft.id)}
+                        disabled={postingId === draft.id}
+                        isLoading={postingId === draft.id}
+                      >
                         Post Now
                       </Button>
                     )}
-                    <Button size="sm" variant="danger" onClick={() => handleDelete(draft.id)}>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => handleDelete(draft.id)}
+                      disabled={deletingId === draft.id}
+                      isLoading={deletingId === draft.id}
+                    >
                       Delete
                     </Button>
                   </div>
@@ -216,40 +264,12 @@ export function DraftsList() {
 }
 
 function StatusBadge({ status }: { status: Draft['status'] }) {
-  const styles: Record<Draft['status'], React.CSSProperties> = {
-    DRAFT: {
-      background: '#fef3c7',
-      color: '#92400e',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-    },
-    SCHEDULED: {
-      background: '#dbeafe',
-      color: '#1e40af',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-    },
-    POSTED: {
-      background: '#dcfce7',
-      color: '#166534',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-    },
-    FAILED: {
-      background: '#fee2e2',
-      color: '#991b1b',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-    },
+  const styles: Record<Draft['status'], string> = {
+    DRAFT: 'bg-warning-bg text-warning px-2 py-1 rounded text-xs font-medium',
+    SCHEDULED: 'bg-info-bg text-info px-2 py-1 rounded text-xs font-medium',
+    POSTED: 'bg-success-bg text-success px-2 py-1 rounded text-xs font-medium',
+    FAILED: 'bg-error-bg text-error px-2 py-1 rounded text-xs font-medium',
   };
 
-  return <span style={styles[status]}>{status}</span>;
+  return <span className={styles[status]}>{status}</span>;
 }

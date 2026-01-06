@@ -26,48 +26,59 @@ interface MessageBubbleProps {
   message: Message;
 }
 
+/**
+ * DRAMS Message Bubble Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Shows timestamp, streaming status
+ * - Understandable: Clear distinction between user/assistant
+ * - Aesthetic: Asymmetric border radius (Rams style)
+ */
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+
+  // Compute avatar classes
+  const avatarClasses = [
+    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+    isUser
+      ? "bg-slate-900 dark:bg-slate-50"
+      : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+  ].join(" ");
+
+  // Compute message classes
+  const messageClasses = [
+    "px-4 py-3.5",
+    isUser
+      ? "bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 rounded-2xl rounded-tr-sm"
+      : "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm"
+  ].join(" ");
 
   return (
     <motion.div
       {...messageBubble}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: isUser ? "flex-end" : "flex-start",
-        marginBottom: "1rem",
-      }}
+      className={`flex flex-col ${isUser ? "items-end" : "items-start"} mb-4`}
     >
       <div
-        style={{
-          maxWidth: "80%",
-          display: "flex",
-          flexDirection: isUser ? "row-reverse" : "row",
-          alignItems: "flex-start",
-          gap: "0.75rem",
-        }}
+        className={`flex items-start gap-3 max-w-[80%] ${
+          isUser ? "flex-row-reverse" : "flex-row"
+        }`}
       >
         {/* Avatar */}
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "50%",
-            background: isUser ? "var(--accent)" : "var(--card-bg)",
-            border: isUser ? "none" : "1px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
+        <div className={avatarClasses}>
           {isUser ? (
-            <span style={{ color: "white", fontSize: "0.75rem", fontWeight: 500 }}>
+            <span className="text-white dark:text-slate-900 text-xs font-medium">
               U
             </span>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-slate-600 dark:text-slate-400"
+            >
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
@@ -76,53 +87,37 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         </div>
 
         {/* Message content */}
-        <div
-          style={{
-            background: isUser ? "var(--accent)" : "var(--card-bg)",
-            color: isUser ? "white" : "var(--foreground)",
-            padding: "0.875rem 1rem",
-            borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-            border: isUser ? "none" : "1px solid var(--border)",
-          }}
-        >
-          <p
-            style={{
-              margin: 0,
-              fontSize: "0.9375rem",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-            }}
-          >
+        <div className={messageClasses}>
+          <p className="m-0 text-sm leading-relaxed whitespace-pre-wrap">
             {message.content}
             {message.isStreaming && (
               <motion.span
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
-                style={{ marginLeft: "2px" }}
+                className="ml-1"
+                aria-hidden="true"
               >
                 ▍
               </motion.span>
             )}
           </p>
-          <span
-            style={{
-              display: "block",
-              fontSize: "0.6875rem",
-              marginTop: "0.5rem",
-              opacity: 0.7,
-            }}
+
+          {/* Timestamp - Honest design */}
+          <time
+            className="block text-xs mt-2 opacity-70"
+            dateTime={message.timestamp.toISOString()}
           >
             {message.timestamp.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
-          </span>
+          </time>
         </div>
       </div>
 
       {/* Tool execution cards */}
       {!isUser && message.toolCalls && message.toolCalls.length > 0 && (
-        <div style={{ marginTop: "0.5rem", marginLeft: "3.25rem" }}>
+        <div className="mt-2 ml-11">
           {message.toolCalls.map((toolCall) => (
             <ToolExecutionCard
               key={toolCall.id}

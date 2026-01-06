@@ -13,76 +13,69 @@ interface ButtonProps extends Omit<HTMLMotionProps<"button">, "size"> {
   fullWidth?: boolean;
 }
 
-const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
-  primary: {
-    background: "var(--accent)",
-    color: "white",
-    border: "none",
-  },
-  secondary: {
-    background: "var(--card-bg)",
-    color: "var(--foreground)",
-    border: "1px solid var(--border)",
-  },
-  ghost: {
-    background: "transparent",
-    color: "var(--foreground)",
-    border: "none",
-  },
-  danger: {
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-  },
-};
-
-const sizeStyles: Record<ButtonSize, React.CSSProperties> = {
-  sm: {
-    padding: "0.5rem 0.75rem",
-    fontSize: "0.875rem",
-  },
-  md: {
-    padding: "0.625rem 1rem",
-    fontSize: "0.9375rem",
-  },
-  lg: {
-    padding: "0.75rem 1.5rem",
-    fontSize: "1rem",
-  },
-};
-
+/**
+ * DRAMS Button Component
+ *
+ * Dieter Rams Principles:
+ * - Useful: Clear purpose, visible state
+ * - Understandable: Obvious button, proper labels
+ * - Honest: Accurate loading state, disabled feedback
+ * - Unobtrusive: Subtle hover/tap animations
+ */
 export function Button({
   variant = "primary",
   size = "md",
   isLoading = false,
   fullWidth = false,
   disabled,
-  style,
+  className = "",
   children,
   ...props
 }: ButtonProps) {
+  // Variant classes - pure Tailwind, no inline styles
+  const variantClasses: Record<ButtonVariant, string> = {
+    primary:
+      "bg-slate-900 text-white border-transparent hover:bg-slate-800 " +
+      "dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-white",
+    secondary:
+      "bg-white text-slate-900 border-slate-300 hover:bg-slate-50 hover:border-slate-400 " +
+      "dark:bg-slate-900 dark:text-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:hover:border-slate-600",
+    ghost:
+      "bg-transparent text-slate-700 border-transparent hover:bg-slate-100 " +
+      "dark:text-slate-300 dark:hover:bg-slate-800",
+    danger:
+      "bg-error text-white border-transparent hover:bg-red-700",
+  };
+
+  // Size classes
+  const sizeClasses: Record<ButtonSize, string> = {
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2.5 text-base",
+    lg: "px-6 py-3 text-lg",
+  };
+
+  // Base classes - focus, disabled, transitions
+  const baseClasses =
+    "inline-flex items-center justify-center gap-2 " +
+    "font-medium rounded-md " +
+    "border " +
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 " +
+    "dark:focus-visible:outline-slate-600 " +
+    "disabled:opacity-50 disabled:cursor-not-allowed " +
+    "transition-colors duration-200 " +
+    (fullWidth ? "w-full" : "w-auto");
+
+  const isDisabled = disabled || isLoading;
+
   return (
     <motion.button
       variants={buttonVariants}
       initial="initial"
-      whileHover={!disabled && !isLoading ? "hover" : undefined}
-      whileTap={!disabled && !isLoading ? "tap" : undefined}
-      disabled={disabled || isLoading}
-      style={{
-        ...variantStyles[variant],
-        ...sizeStyles[size],
-        borderRadius: "6px",
-        fontWeight: 500,
-        cursor: disabled || isLoading ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "0.5rem",
-        width: fullWidth ? "100%" : "auto",
-        transition: "opacity 0.2s ease",
-        ...style,
-      }}
+      whileHover={!isDisabled ? "hover" : undefined}
+      whileTap={!isDisabled ? "tap" : undefined}
+      disabled={isDisabled}
+      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      aria-busy={isLoading}
       {...props}
     >
       {isLoading ? (
@@ -90,13 +83,24 @@ export function Button({
           <motion.span
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            style={{ display: "inline-block" }}
+            className="inline-block"
+            aria-hidden="true"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* Loading spinner */}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M21 12a9 9 0 11-6.219-8.56" />
             </svg>
           </motion.span>
-          Loading...
+          <span>Loading...</span>
         </>
       ) : (
         children

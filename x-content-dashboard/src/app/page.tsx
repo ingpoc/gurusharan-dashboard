@@ -10,30 +10,19 @@ export default function Home() {
   return (
     <MainLayout title="Dashboard">
       {/* Summary Stats */}
-      <div style={{ marginBottom: "2rem" }}>
+      <div className="mb-8">
         <SummaryView />
       </div>
 
       {/* Quick Actions */}
-      <h2
-        style={{
-          fontSize: "1.125rem",
-          fontWeight: 500,
-          marginBottom: "1rem",
-          color: "var(--foreground)",
-        }}
-      >
+      <h2 className="text-lg font-medium text-slate-900 dark:text-slate-50 mb-4">
         Quick Actions
       </h2>
       <motion.div
         {...staggerContainer}
         initial="initial"
         animate="animate"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "1.5rem",
-        }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {[
           {
@@ -69,36 +58,21 @@ export default function Home() {
             ),
           },
         ].map((card, index) => (
-          <Link key={index} href={card.href} style={{ textDecoration: "none" }}>
+          <Link key={index} href={card.href} className="no-underline">
             <motion.div
               variants={staggerItem}
               whileHover={{ scale: 1.02, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-              style={{
-                background: "var(--card-bg)",
-                padding: "1.5rem",
-                borderRadius: "8px",
-                border: "1px solid var(--border)",
-                cursor: "pointer",
-                height: "100%",
-              }}
+              className="bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer h-full"
             >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "8px",
-                  background: "rgba(255, 97, 26, 0.1)",
-                  color: "var(--accent)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "1rem",
-                }}
-              >
+              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-4">
                 {card.icon}
               </div>
-              <h3 style={{ marginBottom: "0.5rem", color: "var(--foreground)" }}>{card.title}</h3>
-              <p style={{ marginBottom: 0, fontSize: "0.9375rem" }}>{card.description}</p>
+              <h3 className="text-base font-medium text-slate-900 dark:text-slate-50 mb-2 m-0">
+                {card.title}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-0">
+                {card.description}
+              </p>
             </motion.div>
           </Link>
         ))}

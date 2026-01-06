@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { MessageList } from './MessageList';
-import type { Message } from './MessageBubble';
-import { ChatInput } from './ChatInput';
-import { Button } from '@/components/ui/Button';
+import { MessageList } from "./MessageList";
+import type { Message } from "./MessageBubble";
+import { ChatInput } from "./ChatInput";
+import { Button } from "@/components/ui/Button";
 
 interface ChatPanelProps {
   messages?: Message[];
@@ -14,6 +14,14 @@ interface ChatPanelProps {
   initialMessages?: Message[];
 }
 
+/**
+ * DRAMS Chat Panel Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Clear error display
+ * - Understandable: Stop button visible when streaming
+ * - Thorough: Handles empty, loading, error states
+ */
 export function ChatPanel({
   messages = [],
   onSendMessage,
@@ -26,28 +34,15 @@ export function ChatPanel({
   const displayMessages = messages.length > 0 ? messages : (initialMessages || []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        background: 'var(--background)',
-        borderRadius: '12px',
-        border: '1px solid var(--border)',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
       <MessageList messages={displayMessages} isLoading={isStreaming} />
 
       {/* Error display */}
       {error && (
         <div
-          style={{
-            padding: '0.75rem 1rem',
-            background: 'var(--error, #dc2626)',
-            color: 'white',
-            fontSize: '0.875rem',
-          }}
+          role="alert"
+          aria-live="assertive"
+          className="px-4 py-3 bg-error-bg text-error text-sm border-t border-error"
         >
           {error}
         </div>
@@ -55,13 +50,7 @@ export function ChatPanel({
 
       {/* Stop button bar */}
       {isStreaming && onStop && (
-        <div
-          style={{
-            padding: '0.5rem 1rem',
-            borderTop: '1px solid var(--border)',
-            background: 'var(--muted)',
-          }}
-        >
+        <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
           <Button variant="secondary" onClick={onStop} size="sm">
             Stop Generation
           </Button>

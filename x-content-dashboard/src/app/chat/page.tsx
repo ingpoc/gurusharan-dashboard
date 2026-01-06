@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout';
 import { MessageBubble, type Message } from '@/components/chat';
 import { ChatPanel } from '@/components/chat';
 import { useChat, type StreamingMessage, type ToolCall } from '@/hooks/useChat';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function ChatPage() {
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([]);
@@ -28,13 +28,7 @@ export default function ChatPage() {
 
   return (
     <MainLayout title="Chat">
-      <div
-        style={{
-          height: 'calc(100vh - 64px - 3rem)',
-          maxWidth: '900px',
-          margin: '0 auto',
-        }}
-      >
+      <div className="h-[calc(100vh-64px-3rem)] max-w-[900px] mx-auto">
         <ChatPanel
           messages={formatMessages()}
           onSendMessage={sendMessage}

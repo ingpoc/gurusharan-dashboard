@@ -3,12 +3,21 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageBubble, Message } from "./MessageBubble";
+import { EmptyState } from "@/components/ui/Card";
 
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
 }
 
+/**
+ * DRAMS Message List Component
+ *
+ * Dieter Rams Principles:
+ * - Honest: Empty state helpful, shows loading
+ * - Thorough: Auto-scroll to bottom
+ * - Unobtrusive: Clean layout
+ */
 export function MessageList({ messages, isLoading }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -16,102 +25,78 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  return (
-    <div
-      style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "1.5rem",
-      }}
-    >
-      {messages.length === 0 ? (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            textAlign: "center",
-            padding: "2rem",
-          }}
-        >
-          <div
-            style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "16px",
-              background: "rgba(255, 97, 26, 0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <EmptyState
+          icon={
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 dark:text-slate-600">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-          </div>
-          <h3 style={{ marginBottom: "0.5rem" }}>Start a conversation</h3>
-          <p style={{ maxWidth: "320px", marginBottom: 0 }}>
-            Ask me to create posts, research topics, or manage your content for @techtrends3107
-          </p>
-        </div>
-      ) : (
-        <AnimatePresence mode="popLayout">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-        </AnimatePresence>
-      )}
+          }
+          title="Start a conversation"
+          description="Ask me to create posts, research topics, or manage your content for @techtrends3107"
+        />
+      </div>
+    );
+  }
 
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <AnimatePresence mode="popLayout">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+      </AnimatePresence>
+
+      {/* Loading indicator */}
       {isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            padding: "0.875rem 1rem",
-            background: "var(--card-bg)",
-            borderRadius: "16px 16px 16px 4px",
-            border: "1px solid var(--border)",
-            maxWidth: "80%",
-          }}
+          className="flex items-center gap-3 p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm max-w-[80%]"
+          role="status"
+          aria-live="polite"
         >
-          <div
-            style={{
-              display: "flex",
-              gap: "4px",
-            }}
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  y: [0, -6, 0],
-                }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                }}
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "var(--muted)",
-                }}
-              />
-            ))}
+          <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-shrink-0">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-slate-600 dark:text-slate-400"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
           </div>
-          <span style={{ fontSize: "0.875rem", color: "var(--muted)" }}>
-            Claude is thinking...
-          </span>
+          <div className="flex gap-1">
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+              className="w-2 h-2 bg-slate-400 dark:bg-slate-600 rounded-full"
+              aria-hidden="true"
+            />
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+              className="w-2 h-2 bg-slate-400 dark:bg-slate-600 rounded-full"
+              aria-hidden="true"
+            />
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+              className="w-2 h-2 bg-slate-400 dark:bg-slate-600 rounded-full"
+              aria-hidden="true"
+            />
+          </div>
         </motion.div>
       )}
 
+      {/* Scroll anchor */}
       <div ref={bottomRef} />
     </div>
   );
