@@ -5,11 +5,6 @@
    Minimal, Timeless, Thorough, Honest
    ============================================ */
 
-/* Enable class-based dark mode for Tailwind v4 */
-@config {
-  darkMode: 'class';
-}
-
 /* Tailwind v4 @theme - Uses actual color values, not var() references */
 @theme {
   /* Slate Color Scale - Pure Neutrals (Light) */
