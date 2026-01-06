@@ -22,7 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 echo "Project root: $PROJECT_ROOT"
-NEXTJS_DIR="$PROJECT_ROOT/x-content-dashboard"
+NEXTJS_DIR="$PROJECT_ROOT"
 NEXTJS_PORT=3000
 LOG_DIR="$PROJECT_ROOT/logs"
 ISSUES_FOUND=0

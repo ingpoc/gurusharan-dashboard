@@ -516,7 +516,7 @@
       "id": "F029",
       "description": "Install @modelcontextprotocol/sdk package",
       "priority": 8,
-      "status": "pending",
+      "status": "implemented",
       "phase": "autonomous-mcp",
       "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 1",
