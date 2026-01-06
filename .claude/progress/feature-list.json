@@ -1,7 +1,7 @@
 {
   "project": "x-content-dashboard",
   "description": "AI-powered content creation dashboard for @techtrends3107",
-  "plan_reference": "/Users/gurusharan/.claude/plans/curious-orbiting-clock.md",
+  "plan_reference": "/Users/gurusharan/.claude/plans/synthetic-gathering-peach.md",
   "created": "2026-01-04",
   "updated": "2026-01-06",
   "features": [
@@ -27,7 +27,9 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## UI Design (Drams-inspired)",
-      "dependencies": ["F001"],
+      "dependencies": [
+        "F001"
+      ],
       "acceptance_criteria": [
         "Colors: #ffffff bg, #262626 text, #ff611a accent",
         "Inter font configured",
@@ -42,7 +44,9 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Database Schema",
-      "dependencies": ["F001"],
+      "dependencies": [
+        "F001"
+      ],
       "acceptance_criteria": [
         "Prisma installed and configured",
         "Settings, Draft, Post, ChatSession, Persona models created",
@@ -57,7 +61,9 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/layout/",
-      "dependencies": ["F002"],
+      "dependencies": [
+        "F002"
+      ],
       "acceptance_criteria": [
         "Sidebar with navigation and posts counter",
         "Header with branding",
@@ -72,7 +78,9 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/ui/",
-      "dependencies": ["F002"],
+      "dependencies": [
+        "F002"
+      ],
       "acceptance_criteria": [
         "Button with variants (primary, secondary, ghost)",
         "Card component with shadows",
@@ -87,7 +95,10 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/chat/",
-      "dependencies": ["F004", "F005"],
+      "dependencies": [
+        "F004",
+        "F005"
+      ],
       "acceptance_criteria": [
         "ChatPanel container layout",
         "MessageList displays messages",
@@ -102,7 +113,9 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Tech Stack > AI: Claude Agent SDK + Anthropic SDK",
-      "dependencies": ["F001"],
+      "dependencies": [
+        "F001"
+      ],
       "acceptance_criteria": [
         "@anthropic-ai/sdk installed",
         "Client configured with API key",
@@ -116,7 +129,9 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/app/api/chat/route.ts",
-      "dependencies": ["F007"],
+      "dependencies": [
+        "F007"
+      ],
       "acceptance_criteria": [
         "POST /api/chat endpoint",
         "Server-Sent Events streaming",
@@ -131,7 +146,9 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/hooks/useChat.ts",
-      "dependencies": ["F008"],
+      "dependencies": [
+        "F008"
+      ],
       "acceptance_criteria": [
         "useChat hook manages state",
         "Handles SSE stream reading",
@@ -146,7 +163,10 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Project Structure > components/chat/StreamingMessage.tsx",
-      "dependencies": ["F006", "F009"],
+      "dependencies": [
+        "F006",
+        "F009"
+      ],
       "acceptance_criteria": [
         "Displays streaming text progressively",
         "Shows cursor/typing indicator",
@@ -160,7 +180,9 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Implementation Phases > ### Phase 2: Claude Integration",
-      "dependencies": ["F010"],
+      "dependencies": [
+        "F010"
+      ],
       "acceptance_criteria": [
         "Chat messages sent to API",
         "Responses streamed to UI",
@@ -174,7 +196,9 @@
       "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## X API Integration",
-      "dependencies": ["F003"],
+      "dependencies": [
+        "F003"
+      ],
       "acceptance_criteria": [
         "twitter-api-v2 installed",
         "OAuth initiation endpoint",
@@ -189,7 +213,10 @@
       "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## Implementation Phases > ### Phase 3: X API Connection",
-      "dependencies": ["F012", "F005"],
+      "dependencies": [
+        "F012",
+        "F005"
+      ],
       "acceptance_criteria": [
         "Connect button initiates OAuth",
         "Shows connected account status",
@@ -203,7 +230,9 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools",
-      "dependencies": ["F007"],
+      "dependencies": [
+        "F007"
+      ],
       "acceptance_criteria": [
         "All 6 tools defined with Zod schemas",
         "Type-safe input/output",
@@ -217,7 +246,10 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > get_settings, draft_post",
-      "dependencies": ["F014", "F003"],
+      "dependencies": [
+        "F014",
+        "F003"
+      ],
       "acceptance_criteria": [
         "get_settings reads persona from DB",
         "draft_post generates content with persona",
@@ -231,7 +263,10 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > post_now",
-      "dependencies": ["F015", "F012"],
+      "dependencies": [
+        "F015",
+        "F012"
+      ],
       "acceptance_criteria": [
         "Posts to X via API",
         "Saves to Post history",
@@ -245,7 +280,9 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > research_topic",
-      "dependencies": ["F014"],
+      "dependencies": [
+        "F014"
+      ],
       "acceptance_criteria": [
         "Searches for trending topics",
         "Returns relevant content",
@@ -259,7 +296,9 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Implementation Phases > ### Phase 4: Agent Tools",
-      "dependencies": ["F010"],
+      "dependencies": [
+        "F010"
+      ],
       "acceptance_criteria": [
         "Shows tool name being executed",
         "Displays tool parameters",
@@ -273,7 +312,9 @@
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/components/dashboard/SummaryView.tsx",
-      "dependencies": ["F004"],
+      "dependencies": [
+        "F004"
+      ],
       "acceptance_criteria": [
         "Shows capabilities overview",
         "X account status",
@@ -287,7 +328,10 @@
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Project Structure > components/dashboard/DraftsList.tsx",
-      "dependencies": ["F003", "F005"],
+      "dependencies": [
+        "F003",
+        "F005"
+      ],
       "acceptance_criteria": [
         "Lists draft posts",
         "Edit/delete functionality",
@@ -301,7 +345,11 @@
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/app/settings/page.tsx",
-      "dependencies": ["F003", "F005", "F013"],
+      "dependencies": [
+        "F003",
+        "F005",
+        "F013"
+      ],
       "acceptance_criteria": [
         "Edit persona fields",
         "Save to database",
@@ -315,7 +363,11 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## UI Design (Drams-inspired) > Animations",
-      "dependencies": ["F019", "F020", "F021"],
+      "dependencies": [
+        "F019",
+        "F020",
+        "F021"
+      ],
       "acceptance_criteria": [
         "Spring animations on components",
         "Page transitions",
@@ -329,7 +381,9 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Free tier X API: 17 posts/day",
-      "dependencies": ["F016"],
+      "dependencies": [
+        "F016"
+      ],
       "acceptance_criteria": [
         "Error boundaries",
         "Toast notifications",
@@ -343,7 +397,10 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Use agent-sdk-verifier-ts before deployment",
-      "dependencies": ["F011", "F018"],
+      "dependencies": [
+        "F011",
+        "F018"
+      ],
       "acceptance_criteria": [
         "Verifier passes all checks",
         "SDK best practices followed",
@@ -357,7 +414,10 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Tech Stack > Deployment: Vercel",
-      "dependencies": ["F023", "F024"],
+      "dependencies": [
+        "F023",
+        "F024"
+      ],
       "acceptance_criteria": [
         "Deployed to Vercel",
         "Environment variables configured",
@@ -370,7 +430,10 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
-      "dependencies": ["F006", "F011"],
+      "dependencies": [
+        "F006",
+        "F011"
+      ],
       "acceptance_criteria": [
         "ChatSessionsList sidebar component",
         "Sessions API endpoints (GET/POST /api/chat/sessions)",
@@ -387,7 +450,9 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
-      "dependencies": ["F021"],
+      "dependencies": [
+        "F021"
+      ],
       "acceptance_criteria": [
         "PersonasList sidebar component",
         "Persona model in Prisma schema",
@@ -405,7 +470,11 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
-      "dependencies": ["F004", "F023"],
+      "plan_section": null,
+      "dependencies": [
+        "F004",
+        "F023"
+      ],
       "acceptance_criteria": [
         "Fixed duplicate header bars on settings page",
         "Connected posts today counter to /api/stats endpoint",
@@ -413,6 +482,385 @@
         "Fixed Next.js 15 async params (await params)",
         "Increased chat sidebar width (w-72→w-80)",
         "Increased chat panel width (max-w-[900px]→max-w-full)"
+      ]
+    },
+    {
+      "id": "F029",
+      "description": "Install @modelcontextprotocol/sdk package",
+      "priority": 8,
+      "status": "pending",
+      "phase": "autonomous-mcp",
+      "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 1",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "@modelcontextprotocol/sdk installed in x-content-dashboard",
+        "Package added to package.json dependencies",
+        "No TypeScript errors from SDK types"
+      ]
+    },
+    {
+      "id": "F030",
+      "description": "Create MCP bridge for remote tool integration",
+      "priority": 8,
+      "status": "pending",
+      "phase": "autonomous-mcp",
+      "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 2",
+      "dependencies": [
+        "F029"
+      ],
+      "acceptance_criteria": [
+        "src/lib/mcp-bridge.ts created",
+        "Connects to remote MCP via SSE/HTTP",
+        "Lists available tools from remote server",
+        "Converts MCP schemas to Zod schemas",
+        "Wraps execution in ToolDefinition format"
+      ]
+    },
+    {
+      "id": "F031",
+      "description": "Update agent.ts to load and use MCP tools",
+      "priority": 8,
+      "status": "pending",
+      "phase": "autonomous-mcp",
+      "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 3",
+      "dependencies": [
+        "F030"
+      ],
+      "acceptance_criteria": [
+        "loadMCPTools() method added to ContentCreatorAgent",
+        "Remote tools merged with local tools",
+        "Connection failures handled gracefully",
+        "Tools execute correctly in chat flow"
+      ]
+    },
+    {
+      "id": "F032",
+      "description": "Add ResearchCache model to Prisma schema",
+      "priority": 8,
+      "status": "pending",
+      "phase": "autonomous-mcp",
+      "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 5",
+      "dependencies": [
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "ResearchCache model in schema.prisma",
+        "Fields: id, topic, results, cachedAt, expiresAt, source",
+        "Indexes on topic and expiresAt",
+        "Database migration run successfully"
+      ]
+    },
+    {
+      "id": "F033",
+      "description": "Configure Tavily MCP server",
+      "priority": 8,
+      "status": "pending",
+      "phase": "autonomous-mcp",
+      "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 4",
+      "dependencies": [
+        "F029"
+      ],
+      "acceptance_criteria": [
+        "Tavily MCP added to .mcp.json",
+        "TAVILY_API_KEY environment variable configured",
+        "Connection test successful",
+        "Tavily search tools discoverable"
+      ]
+    },
+    {
+      "id": "F034",
+      "description": "Create autonomous workflow engine",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 1",
+      "dependencies": [
+        "F031",
+        "F032"
+      ],
+      "acceptance_criteria": [
+        "src/lib/autonomous-workflow.ts created",
+        "State machine: IDLE → RESEARCHING → SYNTHESIZING → DRAFTING → REVIEWING → POSTING → LEARNING",
+        "Context-graph integration for pattern lookup",
+        "Error handling and retry logic"
+      ]
+    },
+    {
+      "id": "F035",
+      "description": "Implement research phase with Tavily",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 2",
+      "dependencies": [
+        "F033",
+        "F034"
+      ],
+      "acceptance_criteria": [
+        "Query context-graph for successful topics",
+        "Tavily search with ResearchCache check",
+        "Store results in ResearchCache (7-day expiry)",
+        "Credit tracking: 5-10 credits per research run"
+      ]
+    },
+    {
+      "id": "F036",
+      "description": "Implement synthesis phase",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 3",
+      "dependencies": [
+        "F034",
+        "F035"
+      ],
+      "acceptance_criteria": [
+        "Claude analyzes research data",
+        "Identifies unique angles (not copying experts)",
+        "Generates 3-5 content ideas",
+        "Stores as Draft with status SYNTHESIZED"
+      ]
+    },
+    {
+      "id": "F037",
+      "description": "Implement drafting phase",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 4",
+      "dependencies": [
+        "F036"
+      ],
+      "acceptance_criteria": [
+        "Draft full posts for each idea",
+        "Apply persona voice/tone/style from Settings",
+        "Add personal insights (value-add)",
+        "Store as Draft with status DRAFTED"
+      ]
+    },
+    {
+      "id": "F038",
+      "description": "Implement review phase",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 5",
+      "dependencies": [
+        "F037"
+      ],
+      "acceptance_criteria": [
+        "Quality check: uniqueness, voice match, value",
+        "Length check: under 280 characters",
+        "Hashtag relevance validation",
+        "Store as Draft with status REVIEWED"
+      ]
+    },
+    {
+      "id": "F039",
+      "description": "Add WorkflowRun model to Prisma",
+      "priority": 9,
+      "status": "pending",
+      "phase": "autonomous-workflow",
+      "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 6",
+      "dependencies": [
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "WorkflowRun model in schema.prisma",
+        "Fields: id, status, phase, personaId, postsCreated, creditsUsed, error, startedAt, completedAt",
+        "Indexes on status and startedAt",
+        "Migration run successfully"
+      ]
+    },
+    {
+      "id": "F040",
+      "description": "Implement posting phase",
+      "priority": 10,
+      "status": "pending",
+      "phase": "autonomous-posting",
+      "plan_section": "## Phase 3: Posting & Learning > Tasks > 1",
+      "dependencies": [
+        "F038",
+        "F039"
+      ],
+      "acceptance_criteria": [
+        "Check X rate limits (17 posts/day)",
+        "Post at optimal times (9AM, 12PM, 6PM)",
+        "Save to Post history",
+        "Update daily counter"
+      ]
+    },
+    {
+      "id": "F041",
+      "description": "Implement learning phase",
+      "priority": 10,
+      "status": "pending",
+      "phase": "autonomous-posting",
+      "plan_section": "## Phase 3: Posting & Learning > Tasks > 2",
+      "dependencies": [
+        "F040"
+      ],
+      "acceptance_criteria": [
+        "Store decisions in context-graph",
+        "Track: topic, tone, time, outcome",
+        "Query context-graph for successful patterns",
+        "Optimize next iteration"
+      ]
+    },
+    {
+      "id": "F042",
+      "description": "Add PostAnalytics model to Prisma",
+      "priority": 10,
+      "status": "pending",
+      "phase": "autonomous-posting",
+      "plan_section": "## Phase 3: Posting & Learning > Tasks > 3",
+      "dependencies": [
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "PostAnalytics model in schema.prisma",
+        "Fields: id, postId, likes, retweets, replies, uniqueAngle, personalVoice, valueAdd, checkedAt",
+        "Relation to Post model",
+        "Migration run successfully"
+      ]
+    },
+    {
+      "id": "F043",
+      "description": "Create manual trigger endpoint",
+      "priority": 10,
+      "status": "pending",
+      "phase": "autonomous-posting",
+      "plan_section": "## Phase 3: Posting & Learning > Tasks > 4",
+      "dependencies": [
+        "F034"
+      ],
+      "acceptance_criteria": [
+        "POST /api/autonomous/trigger starts workflow",
+        "GET /api/autonomous/status checks status",
+        "Admin controls (enable/disable)",
+        "Returns current phase and progress"
+      ]
+    },
+    {
+      "id": "F044",
+      "description": "Create cron job endpoint for Vercel",
+      "priority": 11,
+      "status": "pending",
+      "phase": "autonomous-scheduling",
+      "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 1",
+      "dependencies": [
+        "F043"
+      ],
+      "acceptance_criteria": [
+        "GET /api/cron/daily-content endpoint",
+        "CRON_SECRET verification",
+        "Triggers autonomous workflow",
+        "Vercel cron config (9AM, 12PM, 6PM)"
+      ]
+    },
+    {
+      "id": "F045",
+      "description": "Create status monitoring endpoint",
+      "priority": 11,
+      "status": "pending",
+      "phase": "autonomous-scheduling",
+      "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 3",
+      "dependencies": [
+        "F043"
+      ],
+      "acceptance_criteria": [
+        "GET /api/autonomous/status endpoint",
+        "Returns recent workflow runs",
+        "Credit usage tracking",
+        "Active phase display"
+      ]
+    },
+    {
+      "id": "F046",
+      "description": "Build Workflow Monitor UI",
+      "priority": 11,
+      "status": "pending",
+      "phase": "autonomous-scheduling",
+      "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 4",
+      "dependencies": [
+        "F045"
+      ],
+      "acceptance_criteria": [
+        "src/components/autonomous/WorkflowMonitor.tsx",
+        "Real-time status display",
+        "Start/stop controls",
+        "Recent activity feed",
+        "Credit usage bar (33/day budget)"
+      ]
+    },
+    {
+      "id": "F047",
+      "description": "Implement smart caching system",
+      "priority": 12,
+      "status": "pending",
+      "phase": "autonomous-optimization",
+      "plan_section": "## Phase 5: Optimization & Polish > Tasks > 1",
+      "dependencies": [
+        "F032"
+      ],
+      "acceptance_criteria": [
+        "7-day cache expiry for research",
+        "Cache check before Tavily API calls",
+        "Batch research queries (5 topics/run)",
+        "Daily budget enforcement (33 credits)"
+      ]
+    },
+    {
+      "id": "F048",
+      "description": "Create performance dashboard",
+      "priority": 12,
+      "status": "pending",
+      "phase": "autonomous-optimization",
+      "plan_section": "## Phase 5: Optimization & Polish > Tasks > 2",
+      "dependencies": [
+        "F042"
+      ],
+      "acceptance_criteria": [
+        "src/app/autonomous/page.tsx",
+        "Workflow history table",
+        "Top performing posts display",
+        "Credit usage charts",
+        "Engagement trends (when available)"
+      ]
+    },
+    {
+      "id": "F049",
+      "description": "Add error recovery and fallbacks",
+      "priority": 12,
+      "status": "pending",
+      "phase": "autonomous-optimization",
+      "plan_section": "## Phase 5: Optimization & Polish > Tasks > 3",
+      "dependencies": [
+        "F034"
+      ],
+      "acceptance_criteria": [
+        "Retry failed workflows (3 attempts)",
+        "Fallback to Claude knowledge when Tavily exhausted",
+        "Alert on critical failures",
+        "Error logging for debugging"
+      ]
+    },
+    {
+      "id": "F050",
+      "description": "Create autonomous agent documentation",
+      "priority": 12,
+      "status": "pending",
+      "phase": "autonomous-optimization",
+      "plan_section": "## Phase 5: Optimization & Polish > Tasks > 4",
+      "dependencies": [
+        "F047"
+      ],
+      "acceptance_criteria": [
+        "docs/autonomous-architecture.md",
+        "MCP integration guide",
+        "Deployment instructions",
+        "Credit usage strategy documented",
+        "README.md updated with autonomous features"
       ]
     }
   ],
@@ -423,6 +871,11 @@
     "agent-tools": "F014-F018",
     "dashboard": "F019-F021",
     "polish": "F022-F025",
-    "enhancements": "F026-F028"
+    "enhancements": "F026-F028",
+    "autonomous-mcp": "F029-F033",
+    "autonomous-workflow": "F034-F039",
+    "autonomous-posting": "F040-F043",
+    "autonomous-scheduling": "F044-F046",
+    "autonomous-optimization": "F047-F050"
   }
 }
