@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from './db';
 import { TwitterApi } from 'twitter-api-v2';
 import { refreshAccessToken } from './x-oauth';
+import { getMCPToolDefinitions } from './mcp-bridge';
 
 // ============================================================================
 // Tool Schemas (Zod)
@@ -77,6 +78,38 @@ export class ContentCreatorAgent {
       tools.map((tool) => [tool.name, tool])
     );
     this.systemPrompt = this.buildSystemPrompt();
+  }
+
+  /**
+   * Load MCP tools from remote servers and merge with existing tools
+   */
+  async loadMCPTools(): Promise<void> {
+    console.log('[Agent] Loading MCP tools...');
+
+    try {
+      const mcpTools = await getMCPToolDefinitions();
+
+      for (const tool of mcpTools) {
+        // Add MCP tools with prefix to avoid naming conflicts
+        const existingTool = this.tools.get(tool.name);
+        if (existingTool) {
+          console.log(`[Agent] Tool ${tool.name} already exists, skipping`);
+          continue;
+        }
+
+        this.tools.set(tool.name, tool);
+        console.log(`[Agent] Loaded MCP tool: ${tool.name}`);
+      }
+
+      // Rebuild system prompt with new tools
+      this.systemPrompt = this.buildSystemPrompt();
+
+      console.log(`[Agent] MCP tools loaded. Total tools: ${this.tools.size}`);
+    } catch (error) {
+      console.error('[Agent] Failed to load MCP tools:', error);
+      // Continue without MCP tools - graceful degradation
+      console.log('[Agent] Continuing with local tools only');
+    }
   }
 
   private buildSystemPrompt(): string {
@@ -371,20 +404,22 @@ export const defaultTools: ToolDefinition[] = [
     description: 'Get the current user settings and persona',
     inputSchema: GetSettingsSchema,
     execute: async () => {
-      const settings = await prisma.settings.findFirst();
+      const settings = await prisma.settings.findFirst({
+        include: { activePersona: true },
+      });
       if (!settings) {
         return { persona: null };
       }
-      const persona = JSON.parse(settings.persona || '{}');
+      const persona = settings.activePersona;
       return {
         persona: {
-          name: persona.name || 'Tech Trends',
+          name: persona?.name || 'Tech Trends',
           handle: settings.xUsername ? `@${settings.xUsername}` : '@techtrends3107',
-          tone: persona.tone || 'professional',
-          style: persona.style || 'informative',
-          topics: persona.topics || [],
-          hashtagUsage: persona.hashtagUsage ?? true,
-          emojiUsage: persona.emojiUsage ?? false,
+          tone: persona?.tone || 'professional',
+          style: persona?.style || 'informative',
+          topics: persona?.topics ? JSON.parse(persona.topics) : [],
+          hashtagUsage: persona?.hashtagUsage ?? true,
+          emojiUsage: persona?.emojiUsage ?? false,
         },
       };
     },
@@ -397,20 +432,22 @@ export const defaultTools: ToolDefinition[] = [
       const params = input as z.infer<typeof DraftPostSchema>;
 
       // Get persona for context
-      const settings = await prisma.settings.findFirst();
-      const persona = settings ? JSON.parse(settings.persona || '{}') : {};
+      const settings = await prisma.settings.findFirst({
+        include: { activePersona: true },
+      });
+      const persona = settings?.activePersona;
 
       // Build prompt with persona context
-      const tone = params.tone || persona.tone || 'professional';
-      const topics = persona.topics?.join(', ') || 'AI, Technology';
-      const useHashtags = params.hashtags ?? (persona.hashtagUsage ?? true);
-      const useEmoji = persona.emojiUsage ?? false;
+      const tone = params.tone || persona?.tone || 'professional';
+      const topics = persona?.topics ? JSON.parse(persona.topics).join(', ') : 'AI, Technology';
+      const useHashtags = params.hashtags ?? (persona?.hashtagUsage ?? true);
+      const useEmoji = persona?.emojiUsage ?? false;
 
       const prompt = `Write a ${tone} X (Twitter) post about: ${params.topic}
 
 Context:
 - Topics covered: ${topics}
-- Style: ${persona.style || 'informative'}
+- Style: ${persona?.style || 'informative'}
 - Length: ${params.length || 'medium'}
 - Include hashtags: ${useHashtags}
 - Use emojis: ${useEmoji}
@@ -437,8 +474,8 @@ Keep it engaging and under 280 characters.`;
         preview: true,
         personaUsed: {
           tone,
-          style: persona.style,
-          topics: persona.topics,
+          style: persona?.style || 'informative',
+          topics: persona?.topics || [],
         },
       };
     },

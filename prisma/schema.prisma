@@ -15,17 +15,17 @@ model ChatSession {
 }
 
 model Draft {
-  id          String    @id
+  id          String    @id @default(cuid())
   content     String
   metadata    String?   @default("{}")
   scheduledAt DateTime?
   status      String    @default("DRAFT")
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime  @updatedAt
 }
 
 model Post {
-  id          String   @id
+  id          String   @id @default(cuid())
   tweetId     String   @unique
   content     String
   postedAt    DateTime
@@ -34,30 +34,59 @@ model Post {
   replies     Int      @default(0)
   impressions Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
 }
 
 model Persona {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
-  topics         String   @default("[]")
+  topics         String        @default("[]")
   tone           String
   style          String
-  hashtagUsage   Boolean  @default(true)
-  emojiUsage     Boolean  @default(false)
-  isActive       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  hashtagUsage   Boolean       @default(true)
+  emojiUsage     Boolean       @default(false)
+  isActive       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  workflowRuns   WorkflowRun[]
+  settingsAsActive Settings[]  @relation("SettingsActivePersona")
 }
 
 model Settings {
-  id            String    @id
+  id              String             @id @default(cuid())
   activePersonaId String?
-  xUserId       String?   @unique
-  xUsername     String?
-  xAccessToken  String?
-  xRefreshToken String?
-  xTokenExpiry  DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime
+  activePersona   Persona?           @relation("SettingsActivePersona", fields: [activePersonaId], references: [id])
+  xUserId         String?            @unique
+  xUsername       String?
+  xAccessToken    String?
+  xRefreshToken   String?
+  xTokenExpiry    DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model ResearchCache {
+  id        String   @id @default(cuid())
+  topic     String
+  results   String
+  source    String   @default("tavily")
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+  @@index([topic])
+  @@index([expiresAt])
+}
+
+model WorkflowRun {
+  id           String   @id @default(cuid())
+  status       String   @default("PENDING")
+  phase        String   @default("IDLE")
+  personaId    String
+  persona      Persona  @relation(fields: [personaId], references: [id])
+  postsCreated Int      @default(0)
+  creditsUsed  Int      @default(0)
+  error        String?
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  @@index([status])
+  @@index([startedAt])
 }
