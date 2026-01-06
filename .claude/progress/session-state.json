@@ -1,10 +1,9 @@
 {
-  "session_summary": "Flattened x-content-dashboard to root level (moved src/, prisma/, public/ to root). Added dark/light mode toggle with sun/moon icon in Header. Fixed Tailwind v4 dark mode using @custom-variant dark (&:where(.dark, .dark *)). Added logs/ to .gitignore.",
-  "next_action": "F030 - Create MCP bridge for remote tool integration",
-  "current_feature": "F029",
-  "next_feature": "F030",
-  "completed_features": 29,
-  "pending_features": 21,
-  "total_features": 50,
-  "last_updated": "2026-01-06T19:33:00+05:30"
+  "session_summary": "Implemented F030-F040: MCP bridge, autonomous workflow engine, all workflow phases (research/synthesis/drafting/review/posting/learning), Prisma models (ResearchCache, WorkflowRun), Settings-Persona relation fix",
+  "last_updated": "2026-01-06T14:32:33Z",
+  "current_feature": "F040",
+  "next_feature": "F041",
+  "completed_features": 40,
+  "pending_features": 10,
+  "total_features": 50
 }
