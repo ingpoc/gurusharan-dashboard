@@ -66,6 +66,23 @@ export function ChatSessionsList({
     }
   };
 
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Delete this chat session?')) return;
+
+    try {
+      const res = await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSessions(sessions.filter((s) => s.id !== id));
+        if (currentSessionId === id) {
+          onSessionSelect?.('');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    }
+  };
+
   const getSessionTitle = (messagesStr: string): string => {
     try {
       const messages = JSON.parse(messagesStr);
@@ -81,7 +98,7 @@ export function ChatSessionsList({
   return (
     <motion.aside
       {...fadeIn}
-      className="w-80 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 flex flex-col"
+      className="w-80 shrink-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 flex flex-col"
     >
       {/* Header + New Chat */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -110,11 +127,11 @@ export function ChatSessionsList({
         ) : (
           <ul className="space-y-1">
             {sessions.map((session) => (
-              <li key={session.id}>
+              <li key={session.id} className="relative group">
                 <button
                   onClick={() => onSessionSelect?.(session.id)}
                   className={`
-                    w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                    w-full text-left px-3 py-2 rounded-lg text-sm transition-colors pr-8
                     ${currentSessionId === session.id
                       ? 'bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-50'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
@@ -127,6 +144,17 @@ export function ChatSessionsList({
                   <div className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">
                     {new Date(session.updatedAt).toLocaleDateString()}
                   </div>
+                </button>
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => handleDelete(session.id, e)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                  aria-label="Delete session"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                 </button>
               </li>
             ))}

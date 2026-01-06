@@ -12,7 +12,7 @@ export default function ChatPage() {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [sessionsRefreshKey, setSessionsRefreshKey] = useState(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
-  const previousMessageCountRef = useRef(0);
+  const lastSavedCountRef = useRef(0);
   const { messages, isStreaming, error, sendMessage, stopGeneration, setMessages, clearMessages } = useChat({
     onToolUse: (toolName, input) => {
       setToolCalls((prev) => [...prev, { name: toolName, input }]);
@@ -40,7 +40,7 @@ export default function ChatPage() {
             isStreaming: false,
           }));
           setMessages(streamingMessages);
-          previousMessageCountRef.current = streamingMessages.length;
+          lastSavedCountRef.current = streamingMessages.length;
         }
       } catch (error) {
         console.error('Failed to load session:', error);
@@ -55,13 +55,19 @@ export default function ChatPage() {
   useEffect(() => {
     if (!currentSessionId || messages.length === 0) return;
 
-    // Only save if message count increased (new messages added, not just loading)
-    if (messages.length <= previousMessageCountRef.current) return;
+    // Don't save while streaming - wait for response to complete
+    if (isStreaming) return;
+
+    // Only save if message count increased since last save
+    if (messages.length <= lastSavedCountRef.current) return;
 
     // Clear previous timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
+
+    // Capture current count to save
+    const countToSave = messages.length;
 
     // Save after 1 second of no changes
     saveTimeoutRef.current = setTimeout(async () => {
@@ -77,7 +83,7 @@ export default function ChatPage() {
             })),
           }),
         });
-        previousMessageCountRef.current = messages.length;
+        lastSavedCountRef.current = countToSave;
         setSessionsRefreshKey((prev) => prev + 1);
       } catch (error) {
         console.error('Failed to save session:', error);
@@ -89,7 +95,7 @@ export default function ChatPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [currentSessionId, messages]);
+  }, [currentSessionId, messages, isStreaming]);
 
   // Create new session on first message if none exists
   const handleSendMessage = async (content: string) => {
@@ -98,7 +104,7 @@ export default function ChatPage() {
         const res = await fetch('/api/chat/sessions', { method: 'POST' });
         if (res.ok) {
           const newSession = await res.json();
-          previousMessageCountRef.current = 0; // Reset for new session
+          lastSavedCountRef.current = 0; // Reset for new session
           setCurrentSessionId(newSession.id);
         }
       } catch (error) {
@@ -127,7 +133,7 @@ export default function ChatPage() {
           currentSessionId={currentSessionId}
           triggerRefresh={sessionsRefreshKey}
           onSessionSelect={(id) => {
-            previousMessageCountRef.current = 0; // Reset before loading new session
+            lastSavedCountRef.current = 0; // Reset before loading new session
             setCurrentSessionId(id);
             clearMessages();
           }}
