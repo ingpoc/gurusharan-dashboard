@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Button, Input, Card } from '@/components/ui';
 
 interface Persona {
+  id?: string;
   name: string;
   topics: string[];
   tone: string;

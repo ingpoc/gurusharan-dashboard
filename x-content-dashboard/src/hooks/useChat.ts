@@ -227,6 +227,13 @@ export function useChat(options: UseChatOptions = {}) {
     });
   }, []);
 
+  const setMessages = useCallback((messages: StreamingMessage[]) => {
+    setState((prev) => ({
+      ...prev,
+      messages,
+    }));
+  }, []);
+
   const retryLastMessage = useCallback(() => {
     if (state.messages.length < 2) return;
 
@@ -250,6 +257,7 @@ export function useChat(options: UseChatOptions = {}) {
     sendMessage,
     stopGeneration,
     clearMessages,
+    setMessages,
     retryLastMessage,
   };
 }
