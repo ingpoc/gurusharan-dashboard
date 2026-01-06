@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-content?secret={{CRON_SECRET}}",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/daily-content?secret={{CRON_SECRET}}",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/daily-content?secret={{CRON_SECRET}}",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}
