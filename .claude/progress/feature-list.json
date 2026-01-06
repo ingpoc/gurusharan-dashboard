@@ -3,6 +3,7 @@
   "description": "AI-powered content creation dashboard for @techtrends3107",
   "plan_reference": "/Users/gurusharan/.claude/plans/curious-orbiting-clock.md",
   "created": "2026-01-04",
+  "updated": "2026-01-06",
   "features": [
     {
       "id": "F001",
@@ -26,9 +27,7 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## UI Design (Drams-inspired)",
-      "dependencies": [
-        "F001"
-      ],
+      "dependencies": ["F001"],
       "acceptance_criteria": [
         "Colors: #ffffff bg, #262626 text, #ff611a accent",
         "Inter font configured",
@@ -38,17 +37,15 @@
     },
     {
       "id": "F003",
-      "description": "Set up Prisma with PostgreSQL and database schema",
+      "description": "Set up Prisma with SQLite database schema",
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Database Schema",
-      "dependencies": [
-        "F001"
-      ],
+      "dependencies": ["F001"],
       "acceptance_criteria": [
         "Prisma installed and configured",
-        "Settings, Draft, Post models created",
+        "Settings, Draft, Post, ChatSession, Persona models created",
         "Database migrations run successfully",
         "Prisma client generated"
       ]
@@ -60,11 +57,9 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/layout/",
-      "dependencies": [
-        "F002"
-      ],
+      "dependencies": ["F002"],
       "acceptance_criteria": [
-        "Sidebar with navigation",
+        "Sidebar with navigation and posts counter",
         "Header with branding",
         "MainLayout wrapper component",
         "Responsive design for mobile/desktop"
@@ -77,9 +72,7 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/ui/",
-      "dependencies": [
-        "F002"
-      ],
+      "dependencies": ["F002"],
       "acceptance_criteria": [
         "Button with variants (primary, secondary, ghost)",
         "Card component with shadows",
@@ -94,10 +87,7 @@
       "status": "implemented",
       "phase": "foundation",
       "plan_section": "## Project Structure > components/chat/",
-      "dependencies": [
-        "F004",
-        "F005"
-      ],
+      "dependencies": ["F004", "F005"],
       "acceptance_criteria": [
         "ChatPanel container layout",
         "MessageList displays messages",
@@ -112,9 +102,7 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Tech Stack > AI: Claude Agent SDK + Anthropic SDK",
-      "dependencies": [
-        "F001"
-      ],
+      "dependencies": ["F001"],
       "acceptance_criteria": [
         "@anthropic-ai/sdk installed",
         "Client configured with API key",
@@ -128,9 +116,7 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/app/api/chat/route.ts",
-      "dependencies": [
-        "F007"
-      ],
+      "dependencies": ["F007"],
       "acceptance_criteria": [
         "POST /api/chat endpoint",
         "Server-Sent Events streaming",
@@ -145,9 +131,7 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Key Files to Create > src/hooks/useChat.ts",
-      "dependencies": [
-        "F008"
-      ],
+      "dependencies": ["F008"],
       "acceptance_criteria": [
         "useChat hook manages state",
         "Handles SSE stream reading",
@@ -162,10 +146,7 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Project Structure > components/chat/StreamingMessage.tsx",
-      "dependencies": [
-        "F006",
-        "F009"
-      ],
+      "dependencies": ["F006", "F009"],
       "acceptance_criteria": [
         "Displays streaming text progressively",
         "Shows cursor/typing indicator",
@@ -179,9 +160,7 @@
       "status": "implemented",
       "phase": "claude-integration",
       "plan_section": "## Implementation Phases > ### Phase 2: Claude Integration",
-      "dependencies": [
-        "F010"
-      ],
+      "dependencies": ["F010"],
       "acceptance_criteria": [
         "Chat messages sent to API",
         "Responses streamed to UI",
@@ -195,9 +174,7 @@
       "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## X API Integration",
-      "dependencies": [
-        "F003"
-      ],
+      "dependencies": ["F003"],
       "acceptance_criteria": [
         "twitter-api-v2 installed",
         "OAuth initiation endpoint",
@@ -212,10 +189,7 @@
       "status": "implemented",
       "phase": "x-integration",
       "plan_section": "## Implementation Phases > ### Phase 3: X API Connection",
-      "dependencies": [
-        "F012",
-        "F005"
-      ],
+      "dependencies": ["F012", "F005"],
       "acceptance_criteria": [
         "Connect button initiates OAuth",
         "Shows connected account status",
@@ -229,9 +203,7 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools",
-      "dependencies": [
-        "F007"
-      ],
+      "dependencies": ["F007"],
       "acceptance_criteria": [
         "All 6 tools defined with Zod schemas",
         "Type-safe input/output",
@@ -245,10 +217,7 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > get_settings, draft_post",
-      "dependencies": [
-        "F014",
-        "F003"
-      ],
+      "dependencies": ["F014", "F003"],
       "acceptance_criteria": [
         "get_settings reads persona from DB",
         "draft_post generates content with persona",
@@ -262,10 +231,7 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > post_now",
-      "dependencies": [
-        "F015",
-        "F012"
-      ],
+      "dependencies": ["F015", "F012"],
       "acceptance_criteria": [
         "Posts to X via API",
         "Saves to Post history",
@@ -279,9 +245,7 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Claude Agent Tools > research_topic",
-      "dependencies": [
-        "F014"
-      ],
+      "dependencies": ["F014"],
       "acceptance_criteria": [
         "Searches for trending topics",
         "Returns relevant content",
@@ -295,9 +259,7 @@
       "status": "implemented",
       "phase": "agent-tools",
       "plan_section": "## Implementation Phases > ### Phase 4: Agent Tools",
-      "dependencies": [
-        "F010"
-      ],
+      "dependencies": ["F010"],
       "acceptance_criteria": [
         "Shows tool name being executed",
         "Displays tool parameters",
@@ -311,9 +273,7 @@
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/components/dashboard/SummaryView.tsx",
-      "dependencies": [
-        "F004"
-      ],
+      "dependencies": ["F004"],
       "acceptance_criteria": [
         "Shows capabilities overview",
         "X account status",
@@ -327,10 +287,7 @@
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Project Structure > components/dashboard/DraftsList.tsx",
-      "dependencies": [
-        "F003",
-        "F005"
-      ],
+      "dependencies": ["F003", "F005"],
       "acceptance_criteria": [
         "Lists draft posts",
         "Edit/delete functionality",
@@ -339,16 +296,12 @@
     },
     {
       "id": "F021",
-      "description": "Build PersonaEditor in Settings page",
+      "description": "Build PersonaEditor in Settings page (Single Persona)",
       "priority": 5,
       "status": "implemented",
       "phase": "dashboard",
       "plan_section": "## Key Files to Create > src/app/settings/page.tsx",
-      "dependencies": [
-        "F003",
-        "F005",
-        "F013"
-      ],
+      "dependencies": ["F003", "F005", "F013"],
       "acceptance_criteria": [
         "Edit persona fields",
         "Save to database",
@@ -362,11 +315,7 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## UI Design (Drams-inspired) > Animations",
-      "dependencies": [
-        "F019",
-        "F020",
-        "F021"
-      ],
+      "dependencies": ["F019", "F020", "F021"],
       "acceptance_criteria": [
         "Spring animations on components",
         "Page transitions",
@@ -380,9 +329,7 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Free tier X API: 17 posts/day",
-      "dependencies": [
-        "F016"
-      ],
+      "dependencies": ["F016"],
       "acceptance_criteria": [
         "Error boundaries",
         "Toast notifications",
@@ -396,10 +343,7 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Notes > Use agent-sdk-verifier-ts before deployment",
-      "dependencies": [
-        "F011",
-        "F018"
-      ],
+      "dependencies": ["F011", "F018"],
       "acceptance_criteria": [
         "Verifier passes all checks",
         "SDK best practices followed",
@@ -413,14 +357,62 @@
       "status": "implemented",
       "phase": "polish",
       "plan_section": "## Tech Stack > Deployment: Vercel",
-      "dependencies": [
-        "F023",
-        "F024"
-      ],
+      "dependencies": ["F023", "F024"],
       "acceptance_criteria": [
         "Deployed to Vercel",
         "Environment variables configured",
         "Production URL working"
+      ]
+    },
+    {
+      "id": "F026",
+      "description": "Implement Chat Sessions System with sidebar",
+      "priority": 7,
+      "status": "implemented",
+      "phase": "enhancements",
+      "dependencies": ["F006", "F011"],
+      "acceptance_criteria": [
+        "ChatSessionsList sidebar component",
+        "Sessions API endpoints (GET/POST /api/chat/sessions)",
+        "Session detail API (GET/PUT/DELETE /api/chat/sessions/[id])",
+        "Auto-save messages with 1-second debounce",
+        "Sessions ordered by updatedAt (only moves when new messages added)",
+        "Session selection loads historical messages",
+        "New session auto-creates on first message"
+      ]
+    },
+    {
+      "id": "F027",
+      "description": "Implement Multi-Persona Management System",
+      "priority": 7,
+      "status": "implemented",
+      "phase": "enhancements",
+      "dependencies": ["F021"],
+      "acceptance_criteria": [
+        "PersonasList sidebar component",
+        "Persona model in Prisma schema",
+        "Personas API endpoints (GET/POST /api/personas)",
+        "Persona detail API (GET/PUT/DELETE /api/personas/[id])",
+        "Multiple personas support",
+        "Create/Delete personas from sidebar",
+        "Settings page shows selected persona editor",
+        "Updated Settings model with activePersonaId reference"
+      ]
+    },
+    {
+      "id": "F028",
+      "description": "Bug fixes and UI improvements",
+      "priority": 7,
+      "status": "implemented",
+      "phase": "enhancements",
+      "dependencies": ["F004", "F023"],
+      "acceptance_criteria": [
+        "Fixed duplicate header bars on settings page",
+        "Connected posts today counter to /api/stats endpoint",
+        "Created SQLite database (dev.db)",
+        "Fixed Next.js 15 async params (await params)",
+        "Increased chat sidebar width (w-72→w-80)",
+        "Increased chat panel width (max-w-[900px]→max-w-full)"
       ]
     }
   ],
@@ -430,6 +422,7 @@
     "x-integration": "F012-F013",
     "agent-tools": "F014-F018",
     "dashboard": "F019-F021",
-    "polish": "F022-F025"
+    "polish": "F022-F025",
+    "enhancements": "F026-F028"
   }
 }
