@@ -3,7 +3,7 @@
   "description": "AI-powered content creation dashboard for @techtrends3107",
   "plan_reference": "/Users/gurusharan/.claude/plans/synthetic-gathering-peach.md",
   "created": "2026-01-04",
-  "updated": "2026-01-06",
+  "updated": "2026-01-07",
   "features": [
     {
       "id": "F001",
@@ -912,6 +912,46 @@
         "Credit usage strategy documented",
         "README.md updated with autonomous features"
       ]
+    },
+    {
+      "id": "F051",
+      "description": "Persona management improvements (active persona, save fixes)",
+      "priority": 13,
+      "status": "implemented",
+      "phase": "enhancements",
+      "plan_reference": null,
+      "plan_section": null,
+      "dependencies": [
+        "F027"
+      ],
+      "acceptance_criteria": [
+        "Fixed Save Persona to update existing instead of creating duplicates",
+        "Added Mark Active button next to Save Persona in PersonaEditor",
+        "Green Active badge shows in PersonasList sidebar",
+        "Settings API accepts persona.id to link existing personas",
+        "PersonaEditor includes persona.id when saving",
+        "Button component now supports success variant"
+      ]
+    },
+    {
+      "id": "F052",
+      "description": "Autonomous mode settings and navigation improvements",
+      "priority": 13,
+      "status": "implemented",
+      "phase": "enhancements",
+      "plan_reference": null,
+      "plan_section": null,
+      "dependencies": [
+        "F046",
+        "F027"
+      ],
+      "acceptance_criteria": [
+        "Added Autonomous page to sidebar navigation",
+        "Created AutonomousSettings component with enable/disable toggle",
+        "Fixed WorkflowMonitor to fetch active persona from settings API",
+        "PersonasList handlePersonaSelect now sets persona as active in settings",
+        "New persona creation automatically sets as active"
+      ]
     }
   ],
   "phases": {
@@ -921,7 +961,7 @@
     "agent-tools": "F014-F018",
     "dashboard": "F019-F021",
     "polish": "F022-F025",
-    "enhancements": "F026-F028",
+    "enhancements": "F026-F028, F051-F052",
     "autonomous-mcp": "F029-F033",
     "autonomous-workflow": "F034-F039",
     "autonomous-posting": "F040-F043",
