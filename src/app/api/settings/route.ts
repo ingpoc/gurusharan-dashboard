@@ -20,6 +20,7 @@ export async function GET() {
           hashtagUsage: true,
           emojiUsage: false,
         },
+        autonomousEnabled: false,
       });
     }
 
@@ -33,6 +34,7 @@ export async function GET() {
         hashtagUsage: settings.activePersona.hashtagUsage,
         emojiUsage: settings.activePersona.emojiUsage,
       },
+      autonomousEnabled: settings.autonomousEnabled ?? false,
     });
   } catch (error) {
     console.error('Settings GET error:', error);
@@ -46,14 +48,7 @@ export async function GET() {
 // PUT settings (update persona)
 export async function PUT(req: NextRequest) {
   try {
-    const { persona } = await req.json();
-
-    if (!persona) {
-      return NextResponse.json(
-        { error: 'Persona data required' },
-        { status: 400 }
-      );
-    }
+    const { persona, autonomousEnabled } = await req.json();
 
     // Get or create settings
     let settings = await prisma.settings.findFirst();
@@ -61,44 +56,65 @@ export async function PUT(req: NextRequest) {
       settings = await prisma.settings.create({ data: {} });
     }
 
-    // Find or update the active persona
-    let activePersona;
-    if (settings.activePersonaId) {
-      // Update existing persona
-      activePersona = await prisma.persona.update({
-        where: { id: settings.activePersonaId },
-        data: {
-          name: persona.name,
-          topics: JSON.stringify(persona.topics || []),
-          tone: persona.tone,
-          style: persona.style,
-          hashtagUsage: persona.hashtagUsage ?? true,
-          emojiUsage: persona.emojiUsage ?? false,
-        },
-      });
-    } else {
-      // Create new persona and link it
-      activePersona = await prisma.persona.create({
-        data: {
-          name: persona.name,
-          topics: JSON.stringify(persona.topics || []),
-          tone: persona.tone,
-          style: persona.style,
-          hashtagUsage: persona.hashtagUsage ?? true,
-          emojiUsage: persona.emojiUsage ?? false,
-          isActive: true,
-        },
-      });
-
-      // Link to settings
+    // Update autonomousEnabled if provided
+    if (autonomousEnabled !== undefined) {
       await prisma.settings.update({
         where: { id: settings.id },
-        data: { activePersonaId: activePersona.id },
+        data: { autonomousEnabled },
       });
     }
 
+    // Update persona if provided
+    let activePersona;
+    if (persona) {
+      if (settings.activePersonaId) {
+        // Update existing persona
+        activePersona = await prisma.persona.update({
+          where: { id: settings.activePersonaId },
+          data: {
+            name: persona.name,
+            topics: JSON.stringify(persona.topics || []),
+            tone: persona.tone,
+            style: persona.style,
+            hashtagUsage: persona.hashtagUsage ?? true,
+            emojiUsage: persona.emojiUsage ?? false,
+          },
+        });
+      } else {
+        // Create new persona and link it
+        activePersona = await prisma.persona.create({
+          data: {
+            name: persona.name,
+            topics: JSON.stringify(persona.topics || []),
+            tone: persona.tone,
+            style: persona.style,
+            hashtagUsage: persona.hashtagUsage ?? true,
+            emojiUsage: persona.emojiUsage ?? false,
+            isActive: true,
+          },
+        });
+
+        // Link to settings
+        await prisma.settings.update({
+          where: { id: settings.id },
+          data: { activePersonaId: activePersona.id },
+        });
+      }
+    } else if (settings.activePersonaId) {
+      // Fetch existing active persona
+      activePersona = await prisma.persona.findUnique({
+        where: { id: settings.activePersonaId },
+      });
+    }
+
+    // Refresh settings to get latest autonomousEnabled
+    settings = await prisma.settings.findFirst({
+      where: { id: settings.id },
+      include: { activePersona: true },
+    });
+
     return NextResponse.json({
-      persona: {
+      persona: activePersona ? {
         id: activePersona.id,
         name: activePersona.name,
         topics: JSON.parse(activePersona.topics || '[]'),
@@ -106,7 +122,8 @@ export async function PUT(req: NextRequest) {
         style: activePersona.style,
         hashtagUsage: activePersona.hashtagUsage,
         emojiUsage: activePersona.emojiUsage,
-      },
+      } : null,
+      autonomousEnabled: settings?.autonomousEnabled ?? false,
     });
   } catch (error) {
     console.error('Settings PUT error:', error);

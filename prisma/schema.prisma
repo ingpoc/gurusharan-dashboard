@@ -53,16 +53,17 @@ model Persona {
 }
 
 model Settings {
-  id              String             @id @default(cuid())
-  activePersonaId String?
-  activePersona   Persona?           @relation("SettingsActivePersona", fields: [activePersonaId], references: [id])
-  xUserId         String?            @unique
-  xUsername       String?
-  xAccessToken    String?
-  xRefreshToken   String?
-  xTokenExpiry    DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id                 String             @id @default(cuid())
+  activePersonaId    String?
+  activePersona      Persona?           @relation("SettingsActivePersona", fields: [activePersonaId], references: [id])
+  xUserId            String?            @unique
+  xUsername          String?
+  xAccessToken       String?
+  xRefreshToken      String?
+  xTokenExpiry       DateTime?
+  autonomousEnabled  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 }
 
 model ResearchCache {
@@ -89,4 +90,18 @@ model WorkflowRun {
   completedAt  DateTime?
   @@index([status])
   @@index([startedAt])
+}
+
+model PostAnalytics {
+  id            String   @id @default(cuid())
+  postId        String   @unique
+  likes         Int      @default(0)
+  retweets      Int      @default(0)
+  replies       Int      @default(0)
+  uniqueAngle   String?
+  personalVoice Boolean  @default(false)
+  valueAdd      String?
+  checkedAt     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
