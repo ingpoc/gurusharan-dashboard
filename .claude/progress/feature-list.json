@@ -11,6 +11,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Implementation Phases > ### Phase 1: Foundation (MVP)",
       "dependencies": [],
       "acceptance_criteria": [
@@ -26,6 +27,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## UI Design (Drams-inspired)",
       "dependencies": [
         "F001"
@@ -43,6 +45,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Database Schema",
       "dependencies": [
         "F001"
@@ -60,6 +63,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Project Structure > components/layout/",
       "dependencies": [
         "F002"
@@ -77,6 +81,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Project Structure > components/ui/",
       "dependencies": [
         "F002"
@@ -94,6 +99,7 @@
       "priority": 1,
       "status": "implemented",
       "phase": "foundation",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Project Structure > components/chat/",
       "dependencies": [
         "F004",
@@ -112,6 +118,7 @@
       "priority": 2,
       "status": "implemented",
       "phase": "claude-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Tech Stack > AI: Claude Agent SDK + Anthropic SDK",
       "dependencies": [
         "F001"
@@ -128,6 +135,7 @@
       "priority": 2,
       "status": "implemented",
       "phase": "claude-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Key Files to Create > src/app/api/chat/route.ts",
       "dependencies": [
         "F007"
@@ -145,6 +153,7 @@
       "priority": 2,
       "status": "implemented",
       "phase": "claude-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Key Files to Create > src/hooks/useChat.ts",
       "dependencies": [
         "F008"
@@ -162,6 +171,7 @@
       "priority": 2,
       "status": "implemented",
       "phase": "claude-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Project Structure > components/chat/StreamingMessage.tsx",
       "dependencies": [
         "F006",
@@ -179,6 +189,7 @@
       "priority": 2,
       "status": "implemented",
       "phase": "claude-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Implementation Phases > ### Phase 2: Claude Integration",
       "dependencies": [
         "F010"
@@ -195,6 +206,7 @@
       "priority": 3,
       "status": "implemented",
       "phase": "x-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## X API Integration",
       "dependencies": [
         "F003"
@@ -212,6 +224,7 @@
       "priority": 3,
       "status": "implemented",
       "phase": "x-integration",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Implementation Phases > ### Phase 3: X API Connection",
       "dependencies": [
         "F012",
@@ -229,6 +242,7 @@
       "priority": 4,
       "status": "implemented",
       "phase": "agent-tools",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Claude Agent Tools",
       "dependencies": [
         "F007"
@@ -245,6 +259,7 @@
       "priority": 4,
       "status": "implemented",
       "phase": "agent-tools",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Claude Agent Tools > get_settings, draft_post",
       "dependencies": [
         "F014",
@@ -262,6 +277,7 @@
       "priority": 4,
       "status": "implemented",
       "phase": "agent-tools",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Claude Agent Tools > post_now",
       "dependencies": [
         "F015",
@@ -279,6 +295,7 @@
       "priority": 4,
       "status": "implemented",
       "phase": "agent-tools",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Claude Agent Tools > research_topic",
       "dependencies": [
         "F014"
@@ -295,6 +312,7 @@
       "priority": 4,
       "status": "implemented",
       "phase": "agent-tools",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Implementation Phases > ### Phase 4: Agent Tools",
       "dependencies": [
         "F010"
@@ -311,6 +329,7 @@
       "priority": 5,
       "status": "implemented",
       "phase": "dashboard",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Key Files to Create > src/components/dashboard/SummaryView.tsx",
       "dependencies": [
         "F004"
@@ -327,6 +346,7 @@
       "priority": 5,
       "status": "implemented",
       "phase": "dashboard",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Project Structure > components/dashboard/DraftsList.tsx",
       "dependencies": [
         "F003",
@@ -344,6 +364,7 @@
       "priority": 5,
       "status": "implemented",
       "phase": "dashboard",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Key Files to Create > src/app/settings/page.tsx",
       "dependencies": [
         "F003",
@@ -362,6 +383,7 @@
       "priority": 6,
       "status": "implemented",
       "phase": "polish",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## UI Design (Drams-inspired) > Animations",
       "dependencies": [
         "F019",
@@ -380,6 +402,7 @@
       "priority": 6,
       "status": "implemented",
       "phase": "polish",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Notes > Free tier X API: 17 posts/day",
       "dependencies": [
         "F016"
@@ -396,6 +419,7 @@
       "priority": 6,
       "status": "implemented",
       "phase": "polish",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Notes > Use agent-sdk-verifier-ts before deployment",
       "dependencies": [
         "F011",
@@ -413,6 +437,7 @@
       "priority": 6,
       "status": "implemented",
       "phase": "polish",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "plan_section": "## Tech Stack > Deployment: Vercel",
       "dependencies": [
         "F023",
@@ -430,6 +455,7 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "dependencies": [
         "F006",
         "F011"
@@ -450,6 +476,7 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
+      "plan_reference": "~/.claude/plans/curious-orbiting-clock.md",
       "dependencies": [
         "F021"
       ],
@@ -470,6 +497,7 @@
       "priority": 7,
       "status": "implemented",
       "phase": "enhancements",
+      "plan_reference": null,
       "plan_section": null,
       "dependencies": [
         "F004",
@@ -490,6 +518,7 @@
       "priority": 8,
       "status": "pending",
       "phase": "autonomous-mcp",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 1",
       "dependencies": [],
       "acceptance_criteria": [
@@ -504,6 +533,7 @@
       "priority": 8,
       "status": "pending",
       "phase": "autonomous-mcp",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 2",
       "dependencies": [
         "F029"
@@ -522,6 +552,7 @@
       "priority": 8,
       "status": "pending",
       "phase": "autonomous-mcp",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 3",
       "dependencies": [
         "F030"
@@ -539,6 +570,7 @@
       "priority": 8,
       "status": "pending",
       "phase": "autonomous-mcp",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 5",
       "dependencies": [
         "F003"
@@ -556,6 +588,7 @@
       "priority": 8,
       "status": "pending",
       "phase": "autonomous-mcp",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 1: MCP Integration Foundation > Tasks > 4",
       "dependencies": [
         "F029"
@@ -573,6 +606,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 1",
       "dependencies": [
         "F031",
@@ -591,6 +625,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 2",
       "dependencies": [
         "F033",
@@ -609,6 +644,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 3",
       "dependencies": [
         "F034",
@@ -627,6 +663,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 4",
       "dependencies": [
         "F036"
@@ -644,6 +681,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 5",
       "dependencies": [
         "F037"
@@ -661,6 +699,7 @@
       "priority": 9,
       "status": "pending",
       "phase": "autonomous-workflow",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 2: Autonomous Workflow Core > Tasks > 6",
       "dependencies": [
         "F003"
@@ -678,6 +717,7 @@
       "priority": 10,
       "status": "pending",
       "phase": "autonomous-posting",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 3: Posting & Learning > Tasks > 1",
       "dependencies": [
         "F038",
@@ -696,6 +736,7 @@
       "priority": 10,
       "status": "pending",
       "phase": "autonomous-posting",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 3: Posting & Learning > Tasks > 2",
       "dependencies": [
         "F040"
@@ -713,6 +754,7 @@
       "priority": 10,
       "status": "pending",
       "phase": "autonomous-posting",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 3: Posting & Learning > Tasks > 3",
       "dependencies": [
         "F003"
@@ -730,6 +772,7 @@
       "priority": 10,
       "status": "pending",
       "phase": "autonomous-posting",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 3: Posting & Learning > Tasks > 4",
       "dependencies": [
         "F034"
@@ -747,6 +790,7 @@
       "priority": 11,
       "status": "pending",
       "phase": "autonomous-scheduling",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 1",
       "dependencies": [
         "F043"
@@ -764,6 +808,7 @@
       "priority": 11,
       "status": "pending",
       "phase": "autonomous-scheduling",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 3",
       "dependencies": [
         "F043"
@@ -781,6 +826,7 @@
       "priority": 11,
       "status": "pending",
       "phase": "autonomous-scheduling",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 4: Scheduling & Monitoring > Tasks > 4",
       "dependencies": [
         "F045"
@@ -799,6 +845,7 @@
       "priority": 12,
       "status": "pending",
       "phase": "autonomous-optimization",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 5: Optimization & Polish > Tasks > 1",
       "dependencies": [
         "F032"
@@ -816,6 +863,7 @@
       "priority": 12,
       "status": "pending",
       "phase": "autonomous-optimization",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 5: Optimization & Polish > Tasks > 2",
       "dependencies": [
         "F042"
@@ -834,6 +882,7 @@
       "priority": 12,
       "status": "pending",
       "phase": "autonomous-optimization",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 5: Optimization & Polish > Tasks > 3",
       "dependencies": [
         "F034"
@@ -851,6 +900,7 @@
       "priority": 12,
       "status": "pending",
       "phase": "autonomous-optimization",
+      "plan_reference": "~/.claude/plans/synthetic-gathering-peach.md",
       "plan_section": "## Phase 5: Optimization & Polish > Tasks > 4",
       "dependencies": [
         "F047"
