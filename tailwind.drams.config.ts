@@ -13,6 +13,7 @@
 import type { Config } from 'tailwindcss';
 
 const dramsConfig: Config = {
+  darkMode: 'class', // Enable dark mode based on 'dark' class
   theme: {
     extend: {
       // ============================================
