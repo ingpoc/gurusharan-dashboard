@@ -1,4 +1,4 @@
 {
-  "checkpoint_at": "2026-01-06T07:56:06Z",
-  "summary": "Implemented Chat Sessions System (F026) with sidebar, CRUD APIs, auto-save, and load functionality. Implemented Multi-Persona Management System (F027) with personas sidebar, CRUD APIs, and multiple personas support. Fixed UI bugs (F028): duplicate header, posts counter connection, database creation, Next.js 15 async params, width adjustments. All 28 features (F001-F028) now implemented."
+  "checkpoint_at": "2026-01-06T09:57:38Z",
+  "summary": "Reviewed script customizations in .claude/scripts/ and verified they match initialization skill templates. Updated orchestrator skill to use AskUserQuestion when dev environment is broken, giving users 3 options: fix automatically, continue anyway, or get manual instructions. Updated plan_reference field tracking for features (AI-generated vs user-generated)."
 }

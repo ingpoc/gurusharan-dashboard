@@ -3,7 +3,7 @@
   "feature_id": "F028",
   "entered_at": "2026-01-05T21:58:53+05:30",
   "attempts": 1,
-  "health_status": "OFFLINE",
+  "health_status": "HEALTHY",
   "history": [
     {
       "from": "START",
