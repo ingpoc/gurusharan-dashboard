@@ -3,7 +3,7 @@
 import { motion, HTMLMotionProps } from "framer-motion";
 import { buttonVariants } from "@/lib/animations";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<HTMLMotionProps<"button">, "size"> {
@@ -45,6 +45,9 @@ export function Button({
       "dark:text-slate-300 dark:hover:bg-slate-800",
     danger:
       "bg-error text-white border-transparent hover:bg-red-700",
+    success:
+      "bg-green-600 text-white border-transparent hover:bg-green-700 " +
+      "dark:bg-green-600 dark:text-white dark:hover:bg-green-700",
   };
 
   // Size classes

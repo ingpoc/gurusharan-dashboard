@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AccountConnection } from '@/components/x';
 import { PersonaEditor, PersonasList } from '@/components/settings';
+import { AutonomousSettings } from '@/components/settings/AutonomousSettings';
 import { MainLayout } from '@/components/layout';
 
 interface Persona {
-  id: string;
+  id?: string;
   name: string;
   topics: string[];
   tone: string;
@@ -19,6 +20,7 @@ interface Persona {
 export default function SettingsPage() {
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>();
   const [currentPersona, setCurrentPersona] = useState<Persona | null>(null);
+  const [activePersonaId, setActivePersonaId] = useState<string | undefined>();
   const [personasRefreshKey, setPersonasRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +57,22 @@ export default function SettingsPage() {
     fetchPersona();
   }, [currentPersonaId]);
 
+  // Load active persona ID from settings
+  useEffect(() => {
+    const fetchActivePersona = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setActivePersonaId(data.persona?.id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch active persona:', error);
+      }
+    };
+    fetchActivePersona();
+  }, [personasRefreshKey]);
+
   const handlePersonaSave = async (persona: Persona) => {
     try {
       const res = await fetch(`/api/personas/${currentPersonaId}`, {
@@ -72,12 +90,34 @@ export default function SettingsPage() {
     }
   };
 
+  const handleMarkActive = async (personaId: string) => {
+    try {
+      const res = await fetch(`/api/personas/${personaId}`, {
+        method: 'GET',
+      });
+      if (res.ok) {
+        const persona = await res.json();
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ persona: { id: persona.id } }),
+        });
+        setActivePersonaId(personaId);
+        setPersonasRefreshKey((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error('Failed to mark persona as active:', error);
+      throw error;
+    }
+  };
+
   return (
     <MainLayout title="Settings">
       <div className="h-[calc(100vh-64px-3rem)] flex gap-4">
         {/* Personas Sidebar */}
         <PersonasList
           currentPersonaId={currentPersonaId}
+          activePersonaId={activePersonaId}
           triggerRefresh={personasRefreshKey}
           onPersonaSelect={setCurrentPersonaId}
         />
@@ -93,12 +133,17 @@ export default function SettingsPage() {
             {/* X Account Connection */}
             <AccountConnection />
 
+            {/* Autonomous Mode */}
+            <AutonomousSettings />
+
             {/* Persona Configuration */}
             {!loading && currentPersona && (
               <PersonaEditor
                 key={currentPersona.id}
                 persona={currentPersona}
                 onSave={handlePersonaSave}
+                onMarkActive={handleMarkActive}
+                isActive={currentPersona.id === activePersonaId}
               />
             )}
 

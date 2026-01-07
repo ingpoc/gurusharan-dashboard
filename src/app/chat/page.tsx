@@ -11,7 +11,7 @@ export default function ChatPage() {
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>();
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [sessionsRefreshKey, setSessionsRefreshKey] = useState(0);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastSavedCountRef = useRef(0);
   const { messages, isStreaming, error, sendMessage, stopGeneration, setMessages, clearMessages } = useChat({
     onToolUse: (toolName, input) => {

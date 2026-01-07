@@ -5,7 +5,7 @@
 #
 # ⚠️ CRITICAL: This script runs at the START of EVERY SESSION by orchestrator.
 #
-# Project: x-content-dashboard (Next.js 16 + Prisma)
+# Project: dashboard (Next.js)
 #   - Frontend: Next.js dev server on port 3000
 #   - Database: PostgreSQL (required for Prisma)
 #

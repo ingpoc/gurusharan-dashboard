@@ -289,15 +289,19 @@ export class AutonomousWorkflowEngine {
       }
 
       // Use Claude for research (fallback when Tavily not configured)
-      const researchPrompt = `Research and provide current information about: ${topic}
+      const today = new Date().toISOString().split('T')[0];
+      const researchPrompt = `TODAY IS ${today}. Research and provide CURRENT information about: ${topic}
 
-Please provide:
-1. Key trends and developments
-2. Important statistics or facts
-3. Notable opinions or perspectives
-4. Suggested hashtags for this topic
+Focus on:
+1. What's happening RIGHT NOW (today/this week) - not generic info
+2. Latest news, breakthroughs, or discussions in this space
+3. What people are ACTUALLY talking about today
+4. Why this matters RIGHT NOW - current relevance
+5. 2-3 relevant hashtags for this topic
 
-Format as a concise summary suitable for social media content creation.`;
+CRITICAL: Do NOT provide generic encyclopedia-style information. Focus on TIMELY, CURRENT developments that would make for an interesting post TODAY.
+
+Format as a concise summary highlighting what's NEW and RELEVANT NOW.`;
 
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const anthropic = new Anthropic({
@@ -352,24 +356,66 @@ Format as a concise summary suitable for social media content creation.`;
   private async executeSynthesisPhase(): Promise<void> {
     console.log('[Workflow] Starting synthesis phase...');
 
-    const synthesisPrompt = `Based on the following research, generate 3-5 unique content ideas for X (Twitter) posts.
+    // Get persona for context
+    const persona = await prisma.persona.findUnique({
+      where: { id: this.input.personaId },
+    });
+
+    if (!persona) {
+      throw new Error('Persona not found');
+    }
+
+    const topics = JSON.parse(persona.topics || '[]');
+    const synthesisPrompt = `You are analyzing research to find the SINGLE BEST content idea for an X (Twitter) post today.
 
 Research Data:
 ${this.researchResults.map((r) => `## ${r.topic}\n${r.results}`).join('\n\n')}
 
-For each idea, provide:
-1. A unique angle (not copying experts)
-2. Key insight or value-add
-3. Suggested hashtags
+PERSONA CONTEXT:
+- Tone: ${persona.tone} (how the voice should sound)
+- Style: ${persona.style} (how content is structured)
+- Topics: ${topics.join(', ')} (areas of focus)
 
-Format as JSON array:
-[
-  {
-    "topic": "...",
-    "uniqueAngle": "...",
-    "suggestedHashtags": ["#tag1", "#tag2"]
-  }
-]`;
+CRITICAL: Find a SPECIFIC PROBLEM that was ENCOUNTERED and SOLVED, with the technical details of how.
+
+WHAT DEVELOPERS FIND VALUABLE (from @trq212, @karpathy, Anthropic engineering):
+✅ A specific bug encountered: "XLA compiler bug: bf16/fp32 mismatch caused highest probability token to drop"
+✅ The debugging journey: "Initial fix removed workaround but exposed deeper bug in approximate top-k"
+✅ The failed attempts: "Tried JSON but model kept overwriting it. Landed on JSON after experimentation"
+✅ Trade-off decisions: "Model quality non-negotiable, so accepted 2% efficiency hit for exact top-k"
+✅ Concrete workflows: "After work done I add: spin up subagent to read spec file and verify completion"
+✅ Specific file names/commands: "create claude-progress.txt for state, init.sh for server startup"
+
+RESEARCH FOR THESE PATTERNS in the research data:
+- "I encountered", "I found", "we observed", "after experimenting"
+- Specific error messages or manifestations
+- What didn't work and why
+- The trade-offs considered
+- The exact solution (file names, commands, patterns)
+
+WHAT TO AVOID (these are NOT informative):
+❌ "AI is transforming development" - no specific problem or solution
+❌ "40% reduction in dev time" - no mechanism, just a number
+❌ "Use Claude Code for X" - too generic, no specific technique
+❌ "Agents are the future" - thought leadership, not technical insight
+❌ "Best practices for Y" - laundry list, no experience or debugging
+
+YOUR TASK:
+Find ONE specific problem-solution pair from the research. Ideally:
+1. A specific bug or issue encountered
+2. What was tried that didn't work
+3. The final solution (with technical detail)
+4. Why this solution worked (the insight)
+
+Return ONLY ONE idea in this JSON format:
+{
+  "topic": "specific technical area",
+  "uniqueAngle": "the specific problem encountered and how it was solved (with technical details like file names, commands, or error patterns)",
+  "suggestedHashtags": ["#tag1", "#tag2"],
+  "whyThisMatters": "the practical takeaway or lesson learned"
+}
+
+Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
 
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const anthropic = new Anthropic({
@@ -388,10 +434,10 @@ Format as JSON array:
 
     // Parse JSON response
     try {
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      const ideas = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+      const jsonMatch = content.match(/\{[\s\S]*?\}/);
+      const idea = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
-      for (const idea of ideas) {
+      if (idea) {
         this.synthesizedIdeas.push({
           topic: idea.topic || 'General',
           uniqueAngle: idea.uniqueAngle || '',
@@ -406,17 +452,21 @@ Format as JSON array:
             metadata: JSON.stringify({
               topic: idea.topic,
               hashtags: idea.suggestedHashtags,
+              whyThisMatters: idea.whyThisMatters,
               status: 'SYNTHESIZED',
             }),
             status: 'SYNTHESIZED',
             updatedAt: new Date(),
           },
         });
-      }
 
-      console.log(`[Workflow] Synthesis complete. ${this.synthesizedIdeas.length} ideas generated.`);
+        console.log(`[Workflow] Synthesis complete. Selected: "${idea.topic}" - ${idea.whyThisMatters}`);
+      } else {
+        console.log('[Workflow] No valid idea synthesized');
+      }
     } catch (error) {
       console.error('[Workflow] Failed to parse synthesis response:', error);
+      console.log('[Workflow] Response content:', content);
     }
 
     await this.updateWorkflowRun();
@@ -448,7 +498,8 @@ Format as JSON array:
     for (const idea of this.synthesizedIdeas) {
       console.log(`[Workflow] Drafting post for: ${idea.topic}`);
 
-      const draftingPrompt = `Write a complete X (Twitter) post based on this idea:
+      const today = new Date().toISOString().split('T')[0];
+      const draftingPrompt = `TODAY IS ${today}. Write a complete X (Twitter) post based on this idea.
 
 Topic: ${idea.topic}
 Unique Angle: ${idea.uniqueAngle}
@@ -459,13 +510,33 @@ Persona Settings:
 - Use Emojis: ${persona.emojiUsage}
 - Use Hashtags: ${persona.hashtagUsage}
 
-Requirements:
-- Under 280 characters
-- Include personal insights and value-add
-- ${persona.hashtagUsage ? 'Include relevant hashtags' : 'No hashtags'}
-- ${persona.emojiUsage ? 'Use appropriate emojis' : 'No emojis'}
+CRITICAL: Write like a developer who just solved a specific problem and is sharing the solution.
 
-Write just the post content, no explanation.`;
+REFERENCE TWEETS (study these patterns):
+✅ @trq212: "after the work is done I like to add: 'spin up a subagent to read the spec file and verify if work has been completed, have it give feedback if not and then address the feedback'"
+
+✅ @karpathy: "first 100% autonomous coast-to-coast drive on Tesla FSD V14.2! 2 days 20 hours, 2732 miles, zero interventions. This one is special because the coast-to-coast drive was a major goal for the autopilot team from the start. A lot of hours were spent in marathon clip review"
+
+✅ Anthropic engineering: "approximate top-k sometimes returned completely wrong results, but only for certain batch sizes. The December workaround had been inadvertently masking this problem."
+
+KEY ELEMENTS to include:
+- A SPECIFIC problem encountered (what broke, what didn't work)
+- The debugging/learning process (what was tried, what failed)
+- The solution (file names, commands, patterns, configuration changes)
+- WHY it works (the insight, the "aha moment")
+- Trade-offs if relevant (what was sacrificed)
+
+STYLE: ${persona.tone} ${persona.style}
+- Use first-person when appropriate: "I found", "we discovered", "after X attempts"
+- Include technical details: file names, error patterns, commands, configurations
+- Show the journey, not just the destination
+
+REQUIREMENTS:
+- MUST be under 280 characters
+- ${persona.hashtagUsage ? 'Include 1-2 relevant hashtags' : 'No hashtags'}
+- ${persona.emojiUsage ? 'Use 1 emoji max if it fits naturally' : 'No emojis'}
+
+Write ONLY the tweet content. No explanation, no preamble.`;
 
       const response = await anthropic.messages.create({
         model: 'claude-3-haiku-20240307',

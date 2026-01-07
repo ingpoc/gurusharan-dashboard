@@ -19,6 +19,7 @@ interface Persona {
 
 interface PersonasListProps {
   currentPersonaId?: string;
+  activePersonaId?: string;
   onPersonaSelect?: (personaId: string) => void;
   onNewPersona?: () => void;
   triggerRefresh?: number;
@@ -29,6 +30,7 @@ interface PersonasListProps {
  */
 export function PersonasList({
   currentPersonaId,
+  activePersonaId,
   onPersonaSelect,
   onNewPersona,
   triggerRefresh,
@@ -73,6 +75,23 @@ export function PersonasList({
         const newPersona = await res.json();
         setPersonas([newPersona, ...personas]);
         onPersonaSelect?.(newPersona.id);
+
+        // Set as active in settings
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            persona: {
+              id: newPersona.id,
+              name: newPersona.name,
+              topics: [],
+              tone: 'professional',
+              style: 'informative',
+              hashtagUsage: true,
+              emojiUsage: false,
+            },
+          }),
+        });
       }
     } catch (error) {
       console.error('Failed to create persona:', error);
@@ -93,6 +112,31 @@ export function PersonasList({
       }
     } catch (error) {
       console.error('Failed to delete persona:', error);
+    }
+  };
+
+  const handlePersonaSelect = async (persona: Persona) => {
+    onPersonaSelect?.(persona.id);
+
+    // Set as active in settings
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona: {
+            id: persona.id,
+            name: persona.name,
+            topics: JSON.parse(persona.topics || '[]'),
+            tone: persona.tone,
+            style: persona.style,
+            hashtagUsage: persona.hashtagUsage,
+            emojiUsage: persona.emojiUsage,
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to set active persona:', error);
     }
   };
 
@@ -135,7 +179,7 @@ export function PersonasList({
             {personas.map((persona) => (
               <li key={persona.id} className="relative group">
                 <button
-                  onClick={() => onPersonaSelect?.(persona.id)}
+                  onClick={() => handlePersonaSelect(persona)}
                   className={`
                     w-full text-left px-3 py-2 rounded-lg text-sm transition-colors pr-8
                     ${currentPersonaId === persona.id
@@ -144,7 +188,14 @@ export function PersonasList({
                     }
                   `}
                 >
-                  <div className="font-medium truncate">{persona.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium truncate flex-1">{persona.name}</div>
+                    {activePersonaId === persona.id && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full shrink-0">
+                        Active
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-slate-500 dark:text-slate-500 mt-0.5 truncate">
                     {getPersonaPreview(persona)}
                   </div>

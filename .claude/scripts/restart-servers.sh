@@ -3,7 +3,7 @@
 #
 # Purpose: Kill process on port 3000 and restart Next.js dev server
 #
-# Project: x-content-dashboard (Next.js 16 + Prisma)
+# Project: dashboard (Next.js)
 #   - Single Next.js server on port 3000
 #   - Logs output to logs/nextjs.log
 #
@@ -11,9 +11,12 @@
 
 set -e
 
-PROJECT_ROOT="x-content-dashboard"
+# Get script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
 NEXTJS_PORT=3000
-LOG_DIR="logs"
+LOG_DIR="$PROJECT_ROOT/logs"
 
 echo "=== Restarting Next.js Server ==="
 
@@ -49,16 +52,10 @@ mkdir -p "$LOG_DIR"
 echo ""
 echo "Starting Next.js on port $NEXTJS_PORT..."
 
-if [ -d "$PROJECT_ROOT" ]; then
-  cd "$PROJECT_ROOT"
-  nohup npm run dev > "../$LOG_DIR/nextjs.log" 2>&1 &
-  NEXTJS_PID=$!
-  echo "Next.js started (PID: $NEXTJS_PID, logs: $LOG_DIR/nextjs.log)"
-  cd ..
-else
-  echo "Error: $PROJECT_ROOT directory not found" >&2
-  exit 1
-fi
+cd "$PROJECT_ROOT"
+nohup npm run dev > "$LOG_DIR/nextjs.log" 2>&1 &
+NEXTJS_PID=$!
+echo "Next.js started (PID: $NEXTJS_PID, logs: $LOG_DIR/nextjs.log)"
 
 # ============================================================================
 # Wait for server to be ready

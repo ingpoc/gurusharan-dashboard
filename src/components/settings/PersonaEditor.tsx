@@ -16,7 +16,9 @@ interface Persona {
 
 interface PersonaEditorProps {
   persona: Persona;
-  onSave: (persona: Persona) => void;
+  onSave: (persona: Persona) => void | Promise<void>;
+  onMarkActive?: (personaId: string) => void;
+  isActive?: boolean;
 }
 
 const TONE_OPTIONS = ['professional', 'casual', 'friendly', 'authoritative'];
@@ -30,8 +32,9 @@ const STYLE_OPTIONS = ['informative', 'engaging', 'concise', 'storytelling'];
  * - Honest: Live preview shows what you'll get
  * - Thorough: Validation messages, save/fail states
  */
-export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
+export function PersonaEditor({ persona, onSave, onMarkActive, isActive }: PersonaEditorProps) {
   const [formData, setFormData] = useState<Persona>({
+    id: persona.id,
     name: persona.name || '',
     topics: persona.topics || [],
     tone: persona.tone || 'professional',
@@ -42,6 +45,7 @@ export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
   const [topicInput, setTopicInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isMarkingActive, setIsMarkingActive] = useState(false);
 
   const handleAddTopic = () => {
     if (topicInput.trim() && !formData.topics.includes(topicInput.trim())) {
@@ -68,6 +72,16 @@ export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
       setTimeout(() => setSaveStatus('idle'), 2000);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleMarkActive = async () => {
+    if (!formData.id) return;
+    setIsMarkingActive(true);
+    try {
+      await onMarkActive?.(formData.id);
+    } finally {
+      setIsMarkingActive(false);
     }
   };
 
@@ -270,6 +284,15 @@ export function PersonaEditor({ persona, onSave }: PersonaEditorProps) {
             isLoading={isSaving}
           >
             {isSaving ? 'Saving...' : 'Save Persona'}
+          </Button>
+
+          <Button
+            type="button"
+            variant={isActive ? "success" : "secondary"}
+            disabled={isMarkingActive || isActive}
+            onClick={handleMarkActive}
+          >
+            {isMarkingActive ? 'Setting...' : isActive ? 'Active' : 'Mark Active'}
           </Button>
 
           {/* Status indicator */}

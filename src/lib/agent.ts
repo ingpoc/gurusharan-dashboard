@@ -87,7 +87,16 @@ export class ContentCreatorAgent {
     console.log('[Agent] Loading MCP tools...');
 
     try {
-      const mcpTools = await getMCPToolDefinitions();
+      // Only load specific servers for agent use
+      const allowedServers = [
+        'tavily',          // Web search
+        'perplexity',      // AI search
+        'context7',        // Documentation lookup
+        'token-efficient', // Code execution
+        // Excluded: netlify, playwriter, context-graph (not needed for agent)
+      ];
+
+      const mcpTools = await getMCPToolDefinitions(allowedServers);
 
       for (const tool of mcpTools) {
         // Add MCP tools with prefix to avoid naming conflicts
@@ -542,15 +551,19 @@ Keep it engaging and under 280 characters.`;
         apiKey: process.env.ANTHROPIC_API_KEY || '',
       });
 
-      const prompt = `Research and provide current information about: ${params.topic}
+      const today = new Date().toISOString().split('T')[0];
+      const prompt = `TODAY IS ${today}. Research and provide CURRENT information about: ${params.topic}
 
-Please provide:
-1. Key trends and developments
-2. Important statistics or facts
-3. Notable opinions or perspectives
-4. Suggested hashtags for this topic
+Focus on:
+1. What's happening RIGHT NOW (today/this week) - not generic info
+2. Latest news, breakthroughs, or discussions in this space
+3. What people are ACTUALLY talking about today
+4. Why this matters RIGHT NOW - current relevance
+5. 2-3 relevant hashtags for this topic
 
-Format as a concise summary suitable for social media content creation.`;
+CRITICAL: Do NOT provide generic encyclopedia-style information. Focus on TIMELY, CURRENT developments.
+
+Format as a concise summary highlighting what's NEW and RELEVANT NOW.`;
 
       const response = await anthropic.messages.create({
         model: 'claude-3-haiku-20240307',

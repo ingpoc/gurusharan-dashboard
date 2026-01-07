@@ -40,6 +40,7 @@ interface WorkflowStatus {
     todayCredits: number;
     remainingBudget: number;
   };
+  frequency?: number;
 }
 
 /**
@@ -53,15 +54,53 @@ export function WorkflowMonitor() {
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
+  const [activePersona, setActivePersona] = useState<{
+    name: string;
+    topics: string[];
+    tone: string;
+    style: string;
+  } | null>(null);
+  const [frequency, setFrequency] = useState(3);
+  const [isSavingFrequency, setIsSavingFrequency] = useState(false);
+  const [scheduledJobs, setScheduledJobs] = useState<Array<{
+    id: string;
+    name: string;
+    hour: number;
+    minute: number;
+  }>>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
   // Poll status every 2 seconds for real-time updates
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch("/api/autonomous/status?limit=5");
-        if (!res.ok) throw new Error("Failed to fetch status");
-        const data = await res.json();
+        const [statusRes, settingsRes] = await Promise.all([
+          fetch("/api/autonomous/status?limit=5"),
+          fetch("/api/settings"),
+        ]);
+        if (!statusRes.ok) throw new Error("Failed to fetch status");
+        const data = await statusRes.json();
         setStatus(data);
+
+        // Get active persona ID from settings
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json();
+          setActivePersonaId(settings.persona?.id || null);
+          setFrequency(settings.frequency ?? 3);
+
+          // Set active persona details
+          if (settings.persona) {
+            setActivePersona({
+              name: settings.persona.name,
+              topics: settings.persona.topics || [],
+              tone: settings.persona.tone,
+              style: settings.persona.style,
+            });
+          } else {
+            setActivePersona(null);
+          }
+        }
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -71,17 +110,23 @@ export function WorkflowMonitor() {
     };
 
     fetchStatus();
+    fetchScheduledJobs();
     const interval = setInterval(fetchStatus, 2000);
     return () => clearInterval(interval);
   }, []);
 
   const handleStart = async () => {
+    if (!activePersonaId) {
+      setError("No persona configured. Please create and select a persona in Settings.");
+      return;
+    }
+
     setIsStarting(true);
     try {
       const res = await fetch("/api/autonomous/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ personaId: status?.activeWorkflow?.persona.id }),
+        body: JSON.stringify({ personaId: activePersonaId }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -93,6 +138,64 @@ export function WorkflowMonitor() {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsStarting(false);
+    }
+  };
+
+  const handleFrequencyChange = async (value: number) => {
+    setIsSavingFrequency(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frequency: value }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update frequency");
+      }
+      setFrequency(value);
+      fetchScheduledJobs(); // Refresh schedule after frequency change
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsSavingFrequency(false);
+    }
+  };
+
+  const fetchScheduledJobs = async () => {
+    setIsLoadingJobs(true);
+    try {
+      const res = await fetch("/api/scheduler/jobs");
+      if (res.ok) {
+        const data = await res.json();
+        // Filter for enabled autonomous-post jobs and parse time from name (e.g., "autonomous-post-06:00")
+        const autonomousJobs = data.jobs
+          .filter((job: { name: string; enabled: boolean }) =>
+            job.name.startsWith("autonomous-post-") && job.enabled
+          )
+          .map((job: { id: string; name: string }) => {
+            // Parse time from job name: "autonomous-post-HH:MM"
+            const match = job.name.match(/autonomous-post-(\d{2}):(\d{2})/);
+            const hour = match ? parseInt(match[1]) : 0;
+            const minute = match ? parseInt(match[2]) : 0;
+            return {
+              id: job.id,
+              name: job.name,
+              hour,
+              minute,
+            };
+          })
+          .sort((a: { hour: number; minute: number }, b: { hour: number; minute: number }) => {
+            if (a.hour !== b.hour) return a.hour - b.hour;
+            return a.minute - b.minute;
+          });
+        setScheduledJobs(autonomousJobs);
+      }
+    } catch (err) {
+      console.error("Failed to fetch scheduled jobs:", err);
+    } finally {
+      setIsLoadingJobs(false);
     }
   };
 
@@ -184,14 +287,110 @@ export function WorkflowMonitor() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Current Phase */}
+          {/* Active Persona */}
           <div>
             <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Current Phase
+              Active Persona
             </h4>
-            <p className={`text-2xl font-semibold ${getPhaseColor(status.currentPhase)}`}>
-              {status.currentPhase}
+            {activePersona ? (
+              <div className="space-y-2">
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
+                  {activePersona.name}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {activePersona.topics.slice(0, 3).map((topic) => (
+                    <span
+                      key={topic}
+                      className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full"
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                  {activePersona.topics.length > 3 && (
+                    <span className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
+                      +{activePersona.topics.length - 3}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {activePersona.tone} tone · {activePersona.style} style
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No persona configured
+              </p>
+            )}
+          </div>
+
+          {/* Frequency Selector */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Posts Per Day
+              </h4>
+              {isSavingFrequency && (
+                <span className="text-xs text-slate-500">Saving...</span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="1"
+                max="17"
+                value={frequency}
+                onChange={(e) => setFrequency(parseInt(e.currentTarget.value))}
+                onMouseUp={(e) => handleFrequencyChange(parseInt(e.currentTarget.value))}
+                onTouchEnd={(e) => handleFrequencyChange(parseInt(e.currentTarget.value))}
+                className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                disabled={isSavingFrequency}
+              />
+              <div className="flex items-center gap-2 min-w-[80px]">
+                <span className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
+                  {frequency}
+                </span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">
+                  /day
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              Posts will be spaced evenly throughout the day
             </p>
+
+            {/* Scheduled Times Display */}
+            {isLoadingJobs ? (
+              <p className="text-xs text-slate-500 mt-3">Loading schedule...</p>
+            ) : scheduledJobs.length > 0 ? (
+              <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Scheduled Times ({scheduledJobs.length} posts):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {scheduledJobs.map((job) => {
+                    // Create UTC date from hour/minute and convert to local time
+                    const utcDate = new Date();
+                    utcDate.setUTCHours(job.hour, job.minute, 0, 0);
+                    const time = utcDate.toLocaleTimeString(undefined, {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    });
+                    return (
+                      <span
+                        key={job.id}
+                        className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md"
+                      >
+                        {time}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
+                No scheduled jobs yet. Enable autonomous mode to see posting times.
+              </p>
+            )}
           </div>
 
           {/* Active Workflow */}
