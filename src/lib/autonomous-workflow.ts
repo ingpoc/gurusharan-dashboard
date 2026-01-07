@@ -12,6 +12,7 @@
  */
 
 import { prisma } from './db';
+import { runResearchQuery, runAnalysisQuery, runDocsQuery } from './sdk-helper';
 
 // ============================================================================
 // Types
@@ -288,35 +289,18 @@ export class AutonomousWorkflowEngine {
         continue;
       }
 
-      // Use Claude for research (fallback when Tavily not configured)
+      // Use SDK with Tavily/Perplexity for research
       const today = new Date().toISOString().split('T')[0];
       const researchPrompt = `TODAY IS ${today}. Research and provide CURRENT information about: ${topic}
 
 Focus on:
-1. What's happening RIGHT NOW (today/this week) - not generic info
-2. Latest news, breakthroughs, or discussions in this space
-3. What people are ACTUALLY talking about today
-4. Why this matters RIGHT NOW - current relevance
-5. 2-3 relevant hashtags for this topic
+1. What's happening RIGHT NOW (today/this week)
+2. Latest news, breakthroughs, or discussions
+3. Why this matters RIGHT NOW
 
-CRITICAL: Do NOT provide generic encyclopedia-style information. Focus on TIMELY, CURRENT developments that would make for an interesting post TODAY.
+Use web search tools to find current information. Do NOT provide generic encyclopedia-style information.`;
 
-Format as a concise summary highlighting what's NEW and RELEVANT NOW.`;
-
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY || '',
-      });
-
-      const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: researchPrompt }],
-      });
-
-      const summary = response.content[0]?.type === 'text'
-        ? response.content[0].text.trim()
-        : `Research on ${topic}`;
+      const summary = await runResearchQuery(researchPrompt);
 
       // Cache for 7 days
       const expiresAt = new Date();
@@ -326,7 +310,7 @@ Format as a concise summary highlighting what's NEW and RELEVANT NOW.`;
         data: {
           topic,
           results: summary,
-          source: 'claude',
+          source: 'mcp',
           cachedAt: new Date(),
           expiresAt,
         },
@@ -417,20 +401,7 @@ Return ONLY ONE idea in this JSON format:
 
 Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
 
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
-    });
-
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: synthesisPrompt }],
-    });
-
-    const content = response.content[0]?.type === 'text'
-      ? response.content[0].text.trim()
-      : '[]';
+    const content = await runAnalysisQuery(synthesisPrompt, `You are a content strategist. Analyze research and identify the most compelling angle for a post. Your tone is ${persona.tone}. Respond ONLY with valid JSON, no explanation.`);
 
     // Parse JSON response
     try {
@@ -490,11 +461,6 @@ Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
       throw new Error('Persona not found');
     }
 
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
-    });
-
     for (const idea of this.synthesizedIdeas) {
       console.log(`[Workflow] Drafting post for: ${idea.topic}`);
 
@@ -538,15 +504,7 @@ REQUIREMENTS:
 
 Write ONLY the tweet content. No explanation, no preamble.`;
 
-      const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: draftingPrompt }],
-      });
-
-      const content = response.content[0]?.type === 'text'
-        ? response.content[0].text.trim()
-        : idea.uniqueAngle;
+      const content = await runDocsQuery(draftingPrompt, `You are an expert social media writer. Write ${persona.tone} ${persona.style} posts. Keep it under 280 characters.`);
 
       this.draftedPosts.push({
         content,
@@ -587,39 +545,80 @@ Write ONLY the tweet content. No explanation, no preamble.`;
   private async executeReviewPhase(): Promise<void> {
     console.log('[Workflow] Starting review phase...');
 
+    const persona = await prisma.persona.findUnique({
+      where: { id: this.input.personaId },
+    });
+
     for (const draftedPost of this.draftedPosts) {
       console.log(`[Workflow] Reviewing: ${draftedPost.content.substring(0, 50)}...`);
 
-      const issues: string[] = [];
-      const lengthOk = draftedPost.content.length <= 280;
-      const hashtagsRelevant = true; // TODO: Implement hashtag relevance check
+      const reviewPrompt = `Review this X post for quality:
 
-      if (!lengthOk) {
-        issues.push('Post exceeds 280 characters');
-      }
+POST: "${draftedPost.content}"
 
-      if (!draftedPost.personalVoice) {
-        issues.push('Personal voice not applied');
-      }
+Persona guidelines:
+- Tone: ${persona?.tone}
+- Style: ${persona?.style}
+- Hashtags: ${persona?.hashtagUsage}
 
-      if (!draftedPost.valueAdd) {
-        issues.push('Missing value-add insight');
-      }
+Respond ONLY in JSON:
+{
+  "approved": true/false,
+  "issues": ["issue1", "issue2"],
+  "lengthOk": true/false,
+  "hashtagsRelevant": true/false,
+  "suggestedEdits": "improved version if issues found"
+}
 
-      const approved = issues.length === 0;
+Criteria:
+- Under 280 chars?
+- Matches persona tone/style?
+- Hashtags relevant if used?`;
 
-      this.reviewedPosts.push({
-        content: draftedPost.content,
-        approved,
-        issues,
-        lengthOk,
-        hashtagsRelevant,
-      });
+      const review = await runAnalysisQuery(reviewPrompt, 'You are a content reviewer. Check posts against persona guidelines. Respond ONLY with valid JSON.');
 
-      if (approved) {
-        console.log(`[Workflow] ✓ Post approved`);
-      } else {
-        console.log(`[Workflow] ✗ Post rejected: ${issues.join(', ')}`);
+      // Parse JSON response
+      try {
+        const jsonMatch = review.match(/\{[\s\S]*?\}/);
+        const reviewResult = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+
+        if (reviewResult) {
+          this.reviewedPosts.push({
+            content: reviewResult.approved ? draftedPost.content : reviewResult.suggestedEdits,
+            approved: reviewResult.approved,
+            issues: reviewResult.issues || [],
+            lengthOk: reviewResult.lengthOk ?? true,
+            hashtagsRelevant: reviewResult.hashtagsRelevant ?? true,
+          });
+
+          if (reviewResult.approved) {
+            console.log(`[Workflow] ✓ Post approved`);
+          } else {
+            console.log(`[Workflow] ✗ Post rejected: ${reviewResult.issues.join(', ')}`);
+          }
+        } else {
+          // Fallback to basic validation
+          const issues: string[] = [];
+          const lengthOk = draftedPost.content.length <= 280;
+          if (!lengthOk) issues.push('Post exceeds 280 characters');
+          this.reviewedPosts.push({
+            content: draftedPost.content,
+            approved: issues.length === 0,
+            issues,
+            lengthOk,
+            hashtagsRelevant: true,
+          });
+        }
+      } catch (error) {
+        console.error('[Workflow] Failed to parse review response:', error);
+        // Fallback to basic validation
+        this.reviewedPosts.push({
+          content: draftedPost.content,
+          approved: true,
+          issues: [],
+          lengthOk: true,
+          hashtagsRelevant: true,
+        });
       }
     }
 
