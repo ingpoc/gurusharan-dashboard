@@ -952,6 +952,174 @@
         "PersonasList handlePersonaSelect now sets persona as active in settings",
         "New persona creation automatically sets as active"
       ]
+    },
+    {
+      "id": "F053",
+      "description": "Add ScheduledJob model to Prisma schema",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 1: Database Schema",
+      "dependencies": [
+        "F003"
+      ],
+      "acceptance_criteria": [
+        "ScheduledJob model in schema.prisma with all fields",
+        "Relation to Persona model added",
+        "Indexes on enabled and nextRunAt",
+        "Migration run successfully with npx prisma db push"
+      ]
+    },
+    {
+      "id": "F054",
+      "description": "Install cron package for job scheduling",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 6: Dependencies",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "cron package installed via npm",
+        "Package added to package.json dependencies",
+        "No TypeScript errors from cron types"
+      ]
+    },
+    {
+      "id": "F055",
+      "description": "Create scheduler service (index.ts, frequency-calculator.ts)",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 2: Scheduler Service",
+      "dependencies": [
+        "F053",
+        "F054"
+      ],
+      "acceptance_criteria": [
+        "src/lib/scheduler/index.ts with JobScheduler singleton",
+        "globalThis pattern for hot reload support",
+        "initialize(), addJob(), removeJob(), updateJob() methods",
+        "src/lib/scheduler/frequency-calculator.ts created",
+        "calculatePostingTimes() distributes posts evenly (6AM-10PM UTC)",
+        "rebuildJobsForFrequency() deletes old and creates new jobs"
+      ]
+    },
+    {
+      "id": "F056",
+      "description": "Create instrumentation.ts for server startup",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 3: Server Startup > Create src/instrumentation.ts",
+      "dependencies": [
+        "F055"
+      ],
+      "acceptance_criteria": [
+        "src/instrumentation.ts created with register() function",
+        "Imports and initializes scheduler on server startup",
+        "Checks for NEXT_RUNTIME === 'nodejs'"
+      ]
+    },
+    {
+      "id": "F057",
+      "description": "Update next.config.ts for instrumentation hook",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 3: Server Startup > Modify next.config.ts",
+      "dependencies": [
+        "F056"
+      ],
+      "acceptance_criteria": [
+        "instrumentationHook: true in next.config.ts",
+        "Server starts without errors",
+        "Scheduler initializes on startup"
+      ]
+    },
+    {
+      "id": "F058",
+      "description": "Modify settings API to rebuild jobs when frequency changes",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 4: Settings Integration",
+      "dependencies": [
+        "F055",
+        "F052"
+      ],
+      "acceptance_criteria": [
+        "PUT /api/settings detects frequency changes",
+        "Calls rebuildJobsForFrequency() when frequency updated",
+        "Old jobs deleted and new jobs created",
+        "Scheduler registers new CronJob tasks"
+      ]
+    },
+    {
+      "id": "F059",
+      "description": "Create scheduler API routes",
+      "priority": 14,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 5: API Routes",
+      "dependencies": [
+        "F055"
+      ],
+      "acceptance_criteria": [
+        "GET /api/scheduler/status returns scheduler status",
+        "GET /api/scheduler/jobs returns all scheduled jobs",
+        "Jobs include persona relation and ordered by nextRunAt"
+      ]
+    },
+    {
+      "id": "F060",
+      "description": "Test scheduler functionality",
+      "priority": 15,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Testing Checklist",
+      "dependencies": [
+        "F053",
+        "F054",
+        "F055",
+        "F056",
+        "F057",
+        "F058",
+        "F059"
+      ],
+      "acceptance_criteria": [
+        "Frequency 1 creates noon post only",
+        "Frequency 3 creates 9AM, 12PM, 6PM posts",
+        "Frequency 8 creates posts every 2 hours",
+        "Frequency 17 creates posts every hour",
+        "Server restart preserves scheduled jobs",
+        "Autonomous disable skips job execution",
+        "Workflow conflict detection prevents overlapping runs"
+      ]
+    },
+    {
+      "id": "F061",
+      "description": "Cleanup Vercel cron dependencies",
+      "priority": 15,
+      "status": "pending",
+      "phase": "job-scheduler",
+      "plan_reference": "~/.claude/plans/goofy-doodling-truffle.md",
+      "plan_section": "## Phase 7: Cleanup",
+      "dependencies": [
+        "F060"
+      ],
+      "acceptance_criteria": [
+        "vercel.json cron config removed or updated",
+        "src/app/api/cron/daily-content/route.ts deleted or kept as backup",
+        "No references to Vercel cron in codebase"
+      ]
     }
   ],
   "phases": {
@@ -966,6 +1134,7 @@
     "autonomous-workflow": "F034-F039",
     "autonomous-posting": "F040-F043",
     "autonomous-scheduling": "F044-F046",
-    "autonomous-optimization": "F047-F050"
+    "autonomous-optimization": "F047-F050",
+    "job-scheduler": "F053-F061"
   }
 }
