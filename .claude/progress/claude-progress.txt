@@ -119,3 +119,10 @@ Progress: 50/52 features complete (96%)
 Health: HEALTHY
 State: COMPLETE
 2025-01-07T12:25:00Z: Completed job scheduler implementation (F053-F061). All 61 features done. Browser testing verified scheduler functionality.
+=== Session: 2025-01-07T14:47:10Z ===
+Displayed scheduled post times below frequency slider (parsed from job names).
+User requested full SDK refactor to integrate MCP servers (Tavily/Perplexity) for actual web research.
+Added 6 new features (F062-F067) to feature-list for MCP integration.
+Plan: /Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md
+Progress: 61/67 complete, 6 pending (mcp-integration phase)
+Next: Create SDK helper module (F062)

@@ -1120,6 +1120,109 @@
         "src/app/api/cron/daily-content/route.ts deleted or kept as backup",
         "No references to Vercel cron in codebase"
       ]
+    },
+    {
+      "id": "F062",
+      "description": "Create SDK Helper Module with runQuery() function",
+      "priority": 8,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 1: Create SDK Helper Module",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "src/lib/sdk-helper.ts created",
+        "runQuery() function wrapping Agent SDK's query()",
+        "Pre-configured MCP servers (Tavily, Perplexity, Context7)",
+        "Extracts final result from async generator"
+      ]
+    },
+    {
+      "id": "F063",
+      "description": "Research Phase MCP Integration - Replace direct API calls with runQuery()",
+      "priority": 9,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 2: Refactor Research Phase",
+      "dependencies": [
+        "F062"
+      ],
+      "acceptance_criteria": [
+        "executeResearchPhase() uses runQuery() instead of direct Anthropic API",
+        "allowedTools: tavily_search, perplexity_search, perplexity_reason, WebSearch",
+        "maxTurns: 5 for thorough research",
+        "Research cache stores source='mcp' instead of 'claude'"
+      ]
+    },
+    {
+      "id": "F064",
+      "description": "Synthesis Phase SDK Migration - Replace direct API calls with runQuery()",
+      "priority": 7,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 3: Refactor Synthesis Phase",
+      "dependencies": [
+        "F062"
+      ],
+      "acceptance_criteria": [
+        "executeSynthesisPhase() uses runQuery() instead of direct Anthropic API",
+        "No tools needed (analysis only)",
+        "maxTurns: 1",
+        "JSON response parsing preserved"
+      ]
+    },
+    {
+      "id": "F065",
+      "description": "Drafting Phase SDK Migration - Replace direct API calls with runQuery()",
+      "priority": 7,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 4: Refactor Drafting Phase",
+      "dependencies": [
+        "F062"
+      ],
+      "acceptance_criteria": [
+        "executeDraftingPhase() uses runQuery() instead of direct Anthropic API",
+        "allowedTools: context7_query-docs for reference lookup",
+        "maxTurns: 2",
+        "Persona tone/style preserved"
+      ]
+    },
+    {
+      "id": "F066",
+      "description": "Review Phase SDK Migration - Replace direct API calls with runQuery()",
+      "priority": 6,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 5: Refactor Review Phase",
+      "dependencies": [
+        "F062"
+      ],
+      "acceptance_criteria": [
+        "executeReviewingPhase() uses runQuery() instead of direct Anthropic API",
+        "No tools needed (quality check only)",
+        "maxTurns: 1",
+        "JSON response parsing preserved"
+      ]
+    },
+    {
+      "id": "F067",
+      "description": "Environment Configuration - Add API keys for MCP servers",
+      "priority": 10,
+      "status": "pending",
+      "phase": "mcp-integration",
+      "plan_reference": "/Users/gurusharan/.claude/plans/compressed-pondering-lerdorf.md",
+      "plan_section": "### Step 7: Update Environment Variables",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "TAVILY_API_KEY in .env",
+        "PERPLEXITY_API_KEY in .env",
+        "Keys properly configured for MCP server connections"
+      ]
     }
   ],
   "phases": {
@@ -1135,6 +1238,7 @@
     "autonomous-posting": "F040-F043",
     "autonomous-scheduling": "F044-F046",
     "autonomous-optimization": "F047-F050",
-    "job-scheduler": "F053-F061"
+    "job-scheduler": "F053-F061",
+    "mcp-integration": "F062-F067"
   }
 }
