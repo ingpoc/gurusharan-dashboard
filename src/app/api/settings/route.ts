@@ -21,6 +21,7 @@ export async function GET() {
           emojiUsage: false,
         },
         autonomousEnabled: false,
+        frequency: 3,
       });
     }
 
@@ -35,6 +36,7 @@ export async function GET() {
         emojiUsage: settings.activePersona.emojiUsage,
       },
       autonomousEnabled: settings.autonomousEnabled ?? false,
+      frequency: settings.frequency ?? 3,
     });
   } catch (error) {
     console.error('Settings GET error:', error);
@@ -48,7 +50,7 @@ export async function GET() {
 // PUT settings (update persona)
 export async function PUT(req: NextRequest) {
   try {
-    const { persona, autonomousEnabled } = await req.json();
+    const { persona, autonomousEnabled, frequency } = await req.json();
 
     // Get or create settings
     let settings = await prisma.settings.findFirst();
@@ -56,19 +58,74 @@ export async function PUT(req: NextRequest) {
       settings = await prisma.settings.create({ data: {} });
     }
 
+    // Track frequency changes for job rebuilding
+    const frequencyChanged = frequency !== undefined && frequency !== settings.frequency;
+    const oldFrequency = settings.frequency;
+    const newFrequency = frequency ?? oldFrequency ?? 3;
+
     // Update autonomousEnabled if provided
-    if (autonomousEnabled !== undefined) {
+    if (autonomousEnabled !== undefined || frequency !== undefined) {
       await prisma.settings.update({
         where: { id: settings.id },
-        data: { autonomousEnabled },
+        data: {
+          ...(autonomousEnabled !== undefined && { autonomousEnabled }),
+          ...(frequency !== undefined && { frequency }),
+        },
       });
+    }
+
+    // Rebuild scheduled jobs when frequency changes
+    if (frequencyChanged && settings.activePersonaId) {
+      console.log(`[Settings] Frequency changed from ${oldFrequency} to ${newFrequency}, rebuilding jobs...`);
+
+      const { scheduler } = await import('@/lib/scheduler');
+      const { rebuildJobsForFrequency } = await import('@/lib/scheduler/frequency-calculator');
+
+      await rebuildJobsForFrequency(newFrequency, settings.activePersonaId, scheduler);
+
+      console.log(`[Settings] Jobs rebuilt successfully`);
     }
 
     // Update persona if provided
     let activePersona;
     if (persona) {
-      if (settings.activePersonaId) {
-        // Update existing persona
+      if (persona.id) {
+        // Link to existing persona by ID
+        activePersona = await prisma.persona.findUnique({
+          where: { id: persona.id },
+        });
+
+        if (!activePersona) {
+          return NextResponse.json(
+            { error: 'Persona not found' },
+            { status: 404 }
+          );
+        }
+
+        // Update the persona if different data provided
+        if (persona.name || persona.topics || persona.tone) {
+          activePersona = await prisma.persona.update({
+            where: { id: persona.id },
+            data: {
+              name: persona.name,
+              topics: JSON.stringify(persona.topics || []),
+              tone: persona.tone,
+              style: persona.style,
+              hashtagUsage: persona.hashtagUsage ?? true,
+              emojiUsage: persona.emojiUsage ?? false,
+            },
+          });
+        }
+
+        // Link to settings
+        if (settings.activePersonaId !== persona.id) {
+          await prisma.settings.update({
+            where: { id: settings.id },
+            data: { activePersonaId: persona.id },
+          });
+        }
+      } else if (settings.activePersonaId) {
+        // Update existing active persona
         activePersona = await prisma.persona.update({
           where: { id: settings.activePersonaId },
           data: {
@@ -124,6 +181,7 @@ export async function PUT(req: NextRequest) {
         emojiUsage: activePersona.emojiUsage,
       } : null,
       autonomousEnabled: settings?.autonomousEnabled ?? false,
+      frequency: settings?.frequency ?? 3,
     });
   } catch (error) {
     console.error('Settings PUT error:', error);
