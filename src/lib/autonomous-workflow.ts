@@ -12,7 +12,7 @@
  */
 
 import { prisma } from './db';
-import { runResearchQuery, runAnalysisQuery, runDocsQuery } from './sdk-helper';
+import { runResearchQuery, runAnalysisQuery } from './sdk-helper';
 
 // ============================================================================
 // Types
@@ -418,7 +418,7 @@ Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
         // Save as Draft with SYNTHESIZED status
         await prisma.draft.create({
           data: {
-            id: `synth-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `synth-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
             content: idea.uniqueAngle,
             metadata: JSON.stringify({
               topic: idea.topic,
@@ -465,7 +465,11 @@ Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
       console.log(`[Workflow] Drafting post for: ${idea.topic}`);
 
       const today = new Date().toISOString().split('T')[0];
-      const draftingPrompt = `TODAY IS ${today}. Write a complete X (Twitter) post based on this idea.
+      let draftingPrompt = `TODAY IS ${today}. Write a complete X (Twitter) post based on this idea.
+
+⚠️ CHARACTER LIMIT: 280 MAX (count spaces, URLs = 23 chars)
+⚠️ If your response exceeds 280 characters, it will be REJECTED
+⚠️ Target: 200-260 characters for safety margin
 
 Topic: ${idea.topic}
 Unique Angle: ${idea.uniqueAngle}
@@ -478,34 +482,55 @@ Persona Settings:
 
 CRITICAL: Write like a developer who just solved a specific problem and is sharing the solution.
 
-REFERENCE TWEETS (study these patterns):
+REFERENCE TWEETS (study these patterns - all under 280 chars):
 ✅ @trq212: "after the work is done I like to add: 'spin up a subagent to read the spec file and verify if work has been completed, have it give feedback if not and then address the feedback'"
 
-✅ @karpathy: "first 100% autonomous coast-to-coast drive on Tesla FSD V14.2! 2 days 20 hours, 2732 miles, zero interventions. This one is special because the coast-to-coast drive was a major goal for the autopilot team from the start. A lot of hours were spent in marathon clip review"
+✅ @karpathy: "first 100% autonomous coast-to-coast drive on Tesla FSD V14.2! 2 days 20 hours, 2732 miles, zero interventions."
 
 ✅ Anthropic engineering: "approximate top-k sometimes returned completely wrong results, but only for certain batch sizes. The December workaround had been inadvertently masking this problem."
 
-KEY ELEMENTS to include:
-- A SPECIFIC problem encountered (what broke, what didn't work)
-- The debugging/learning process (what was tried, what failed)
-- The solution (file names, commands, patterns, configuration changes)
-- WHY it works (the insight, the "aha moment")
-- Trade-offs if relevant (what was sacrificed)
+KEY ELEMENTS (be concise to stay under 280):
+- ONE specific problem encountered
+- BRIEF mention of what was tried
+- The solution (file names, commands, patterns)
+- ONE insight about why it works
 
 STYLE: ${persona.tone} ${persona.style}
-- Use first-person when appropriate: "I found", "we discovered", "after X attempts"
-- Include technical details: file names, error patterns, commands, configurations
-- Show the journey, not just the destination
+- Use first-person: "I found", "we discovered", "after X attempts"
+- Include technical details but keep them brief
+- Show the journey, but make every character count
 
-REQUIREMENTS:
-- MUST be under 280 characters
-- ${persona.hashtagUsage ? 'Include 1-2 relevant hashtags' : 'No hashtags'}
-- ${persona.emojiUsage ? 'Use 1 emoji max if it fits naturally' : 'No emojis'}
+Write ONLY the tweet content. No explanation, no preamble.
+Remember: 280 characters MAX. Count carefully.`;
 
-Write ONLY the tweet content. No explanation, no preamble.`;
+      // Generate content with retry for character limit
+      let content = '';
+      let retries = 0;
+      const maxRetries = 3;
 
-      const content = await runDocsQuery(draftingPrompt, `You are an expert social media writer. Write ${persona.tone} ${persona.style} posts. Keep it under 280 characters.`);
+      while (retries < maxRetries) {
+        content = await runAnalysisQuery(draftingPrompt, `You are an expert social media writer. Write ${persona.tone} ${persona.style} posts. CRITICAL: Every post MUST be under 280 characters. URLs count as 23 characters. Target 200-260 characters. If you exceed 280, the post will be rejected. Do NOT use any tools - write the post content yourself based on the provided research and persona.`);
 
+        const charCount = content.length;
+        console.log(`[Workflow] Draft attempt ${retries + 1}: ${charCount} characters (max: 280)`);
+
+        if (charCount <= 280) {
+          break; // Success!
+        }
+
+        retries++;
+        if (retries < maxRetries) {
+          console.log(`[Workflow] Content too long (${charCount} chars), retrying...`);
+          // Update prompt to be more strict about length
+          draftingPrompt = draftingPrompt.replace(
+            '⚠️ CHARACTER LIMIT: 280 MAX',
+            `⚠️ CHARACTER LIMIT: 280 MAX - YOUR LAST ATTEMPT WAS ${charCount} CHARS (TOO LONG!)
+⚠️ You MUST shorten this significantly. Target 200-240 characters.`
+          );
+        }
+      }
+
+      // Note: No truncation here - let review phase provide suggested edits first
       this.draftedPosts.push({
         content,
         topic: idea.topic,
@@ -517,7 +542,7 @@ Write ONLY the tweet content. No explanation, no preamble.`;
       // Update draft with DRAFTED status
       await prisma.draft.create({
         data: {
-          id: `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `draft-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
           content,
           metadata: JSON.stringify({
             topic: idea.topic,
@@ -555,6 +580,7 @@ Write ONLY the tweet content. No explanation, no preamble.`;
       const reviewPrompt = `Review this X post for quality:
 
 POST: "${draftedPost.content}"
+CURRENT LENGTH: ${draftedPost.content.length} characters (MAX: 280)
 
 Persona guidelines:
 - Tone: ${persona?.tone}
@@ -567,15 +593,16 @@ Respond ONLY in JSON:
   "issues": ["issue1", "issue2"],
   "lengthOk": true/false,
   "hashtagsRelevant": true/false,
-  "suggestedEdits": "improved version if issues found"
+  "suggestedEdits": "shorter version if length exceeds 280 chars, or improved version if other issues found"
 }
 
-Criteria:
-- Under 280 chars?
-- Matches persona tone/style?
-- Hashtags relevant if used?`;
+CRITICAL CHECKLIST:
+1. Length: MUST be ≤ 280 characters. Current: ${draftedPost.content.length}
+2. If length > 280: suggestedEdits MUST condense to under 280
+3. If length ok: check tone/style match
+4. Hashtags: relevant and not excessive?`;
 
-      const review = await runAnalysisQuery(reviewPrompt, 'You are a content reviewer. Check posts against persona guidelines. Respond ONLY with valid JSON.');
+      const review = await runAnalysisQuery(reviewPrompt, `You are a content reviewer. Check posts against persona guidelines. CRITICAL: If post exceeds 280 characters, you MUST provide a shorter version in suggestedEdits that is under 280. Respond ONLY with valid JSON.`);
 
       // Parse JSON response
       try {
@@ -583,16 +610,25 @@ Criteria:
         const reviewResult = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
         if (reviewResult) {
+          // Use suggested edits if not approved
+          const finalContent = reviewResult.approved ? draftedPost.content : reviewResult.suggestedEdits;
+
+          // Validate suggested edits length
+          const suggestedLength = finalContent.length;
+          const lengthOk = suggestedLength <= 280;
+
           this.reviewedPosts.push({
-            content: reviewResult.approved ? draftedPost.content : reviewResult.suggestedEdits,
-            approved: reviewResult.approved,
+            content: finalContent,
+            approved: reviewResult.approved && lengthOk,
             issues: reviewResult.issues || [],
-            lengthOk: reviewResult.lengthOk ?? true,
+            lengthOk,
             hashtagsRelevant: reviewResult.hashtagsRelevant ?? true,
           });
 
-          if (reviewResult.approved) {
-            console.log(`[Workflow] ✓ Post approved`);
+          if (reviewResult.approved && lengthOk) {
+            console.log(`[Workflow] ✓ Post approved (${suggestedLength} chars)`);
+          } else if (!lengthOk) {
+            console.log(`[Workflow] ✗ Post rejected: Suggested edits still too long (${suggestedLength} chars)`);
           } else {
             console.log(`[Workflow] ✗ Post rejected: ${reviewResult.issues.join(', ')}`);
           }
@@ -703,7 +739,7 @@ Criteria:
         // Save to Post history
         await prisma.post.create({
           data: {
-            id: `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `post-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
             tweetId: tweet.data.id,
             content: post.content,
             postedAt: new Date(),
