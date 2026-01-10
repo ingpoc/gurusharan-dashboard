@@ -101,6 +101,9 @@ export class AutonomousWorkflowEngine {
   private retryCount = 0;
   private maxRetries = 3;
 
+  // Cached data (fetched once, reused across phases)
+  private cachedPersona: Persona | null = null;
+
   // Phase data
   private researchResults: ResearchResult[] = [];
   private synthesizedIdeas: SynthesizedIdea[] = [];
@@ -142,6 +145,15 @@ export class AutonomousWorkflowEngine {
     this.workflowRunId = run.id;
     console.log(`[Workflow] Created workflow run: ${run.id}`);
 
+    // Cache persona once for all phases (avoids 5 redundant DB queries)
+    this.cachedPersona = await prisma.persona.findUnique({
+      where: { id: this.input.personaId },
+    });
+    if (!this.cachedPersona) {
+      throw new Error('Persona not found');
+    }
+    console.log(`[Workflow] Cached persona: ${this.cachedPersona.name}`);
+
     try {
       // Execute workflow phases
       await this.executePhases();
@@ -153,6 +165,9 @@ export class AutonomousWorkflowEngine {
 
       await this.updateWorkflowRun();
       console.log('[Workflow] Workflow completed successfully');
+
+      // Invalidate research cache so next workflow gets fresh data
+      await this.invalidateResearchCache();
     } catch (error) {
       console.error('[Workflow] Workflow failed:', error);
       await this.handleError(error as Error);
@@ -161,34 +176,38 @@ export class AutonomousWorkflowEngine {
 
   /**
    * Execute all workflow phases sequentially
+   * DB updates only at key milestones to reduce writes
    */
   private async executePhases(): Promise<void> {
     // Phase 1: Research
-    await this.transitionTo(WorkflowPhase.RESEARCHING);
+    this.state.phase = WorkflowPhase.RESEARCHING;
     await this.executeResearchPhase();
 
     // Phase 2: Synthesize
-    await this.transitionTo(WorkflowPhase.SYNTHESIZING);
+    this.state.phase = WorkflowPhase.SYNTHESIZING;
     await this.executeSynthesisPhase();
 
-    // Phase 3: Draft
-    await this.transitionTo(WorkflowPhase.DRAFTING);
+    // Phase 3: Draft (first milestone update)
+    this.state.phase = WorkflowPhase.DRAFTING;
     await this.executeDraftingPhase();
+    await this.updateWorkflowRun(); // MILESTONE: drafts created
 
     // Phase 4: Review
-    await this.transitionTo(WorkflowPhase.REVIEWING);
+    this.state.phase = WorkflowPhase.REVIEWING;
     await this.executeReviewPhase();
 
-    // Phase 5: Post
-    await this.transitionTo(WorkflowPhase.POSTING);
+    // Phase 5: Post (second milestone update)
+    this.state.phase = WorkflowPhase.POSTING;
     await this.executePostingPhase();
+    await this.updateWorkflowRun(); // MILESTONE: posts created
 
     // Phase 6: Learn
-    await this.transitionTo(WorkflowPhase.LEARNING);
+    this.state.phase = WorkflowPhase.LEARNING;
     await this.executeLearningPhase();
 
-    // Return to idle
-    await this.transitionTo(WorkflowPhase.IDLE);
+    // Final update
+    this.state.phase = WorkflowPhase.IDLE;
+    await this.updateWorkflowRun();
   }
 
   /**
@@ -242,6 +261,19 @@ export class AutonomousWorkflowEngine {
     }
   }
 
+  /**
+   * Invalidate research cache after workflow completes
+   * Ensures next workflow gets fresh data from web search
+   */
+  private async invalidateResearchCache(): Promise<void> {
+    try {
+      const result = await prisma.researchCache.deleteMany({});
+      console.log(`[Workflow] Invalidated ${result.count} research cache entries`);
+    } catch (error) {
+      console.error('[Workflow] Failed to invalidate research cache:', error);
+    }
+  }
+
   // ============================================================================
   // Phase Implementations
   // ============================================================================
@@ -256,14 +288,8 @@ export class AutonomousWorkflowEngine {
   private async executeResearchPhase(): Promise<void> {
     console.log('[Workflow] Starting research phase...');
 
-    // Get persona for topics
-    const persona = await prisma.persona.findUnique({
-      where: { id: this.input.personaId },
-    });
-
-    if (!persona) {
-      throw new Error('Persona not found');
-    }
+    // Get persona for topics (cached)
+    const persona = this.cachedPersona!;
 
     const topics = JSON.parse(persona.topics || '[]');
     const topicCount = this.input.topicCount || 5;
@@ -335,7 +361,6 @@ Provide specific, current information with sources. Do NOT provide generic encyc
     }
 
     console.log(`[Workflow] Research complete. ${this.researchResults.length} topics researched.`);
-    await this.updateWorkflowRun();
   }
 
   /**
@@ -447,8 +472,6 @@ Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
       console.error('[Workflow] Failed to parse synthesis response:', error);
       console.log('[Workflow] Response content:', content);
     }
-
-    await this.updateWorkflowRun();
   }
 
   /**
@@ -565,7 +588,6 @@ Remember: 280 characters MAX. Count carefully.`;
     }
 
     console.log(`[Workflow] Drafting complete. ${this.draftedPosts.length} posts created.`);
-    await this.updateWorkflowRun();
   }
 
   /**
@@ -700,7 +722,6 @@ CRITICAL CHECKLIST:
       .filter((post): post is NonNullable<typeof post> => post?.approved === true);
 
     console.log(`[Workflow] Review complete. ${this.draftedPosts.length} posts approved.`);
-    await this.updateWorkflowRun();
   }
 
   /**
@@ -795,7 +816,6 @@ CRITICAL CHECKLIST:
     }
 
     console.log(`[Workflow] Posting complete. ${this.postedResults.length} posts created.`);
-    await this.updateWorkflowRun();
   }
 
   /**
@@ -847,7 +867,6 @@ CRITICAL CHECKLIST:
     }
 
     console.log(`[Workflow] Learning complete. ${this.postedResults.length} patterns analyzed.`);
-    await this.updateWorkflowRun();
   }
 
   /**
