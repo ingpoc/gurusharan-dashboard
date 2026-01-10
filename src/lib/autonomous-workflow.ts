@@ -12,7 +12,8 @@
  */
 
 import { prisma } from './db';
-import { runResearchQuery, runAnalysisQuery } from './sdk-helper';
+import { runResearchQuery, runDocsQuery, runAnalysisQuery } from './sdk-helper';
+import type { Persona } from '@prisma/client';
 
 // ============================================================================
 // Types
@@ -128,6 +129,7 @@ export class AutonomousWorkflowEngine {
     console.log('[Workflow] Starting autonomous workflow...');
 
     this.state.status = WorkflowStatus.RUNNING;
+    this.state.phase = WorkflowPhase.RESEARCHING;
     this.state.startedAt = new Date();
 
     // Create workflow run record
@@ -154,6 +156,9 @@ export class AutonomousWorkflowEngine {
     }
     console.log(`[Workflow] Cached persona: ${this.cachedPersona.name}`);
 
+    // Invalidate research cache BEFORE workflow starts - ensures fresh research every time
+    await this.invalidateResearchCache();
+
     try {
       // Execute workflow phases
       await this.executePhases();
@@ -165,9 +170,6 @@ export class AutonomousWorkflowEngine {
 
       await this.updateWorkflowRun();
       console.log('[Workflow] Workflow completed successfully');
-
-      // Invalidate research cache so next workflow gets fresh data
-      await this.invalidateResearchCache();
     } catch (error) {
       console.error('[Workflow] Workflow failed:', error);
       await this.handleError(error as Error);
@@ -280,8 +282,8 @@ export class AutonomousWorkflowEngine {
 
   /**
    * F035: Research Phase
-   * - Query context-graph for successful topics
-   * - Tavily search with ResearchCache check
+   * - Persona topics with daily aspect rotation (latest developments, breaking news, etc.)
+   * - Tavily/Perplexity search with ResearchCache check
    * - Store results in ResearchCache (7-day expiry)
    * - Credit tracking: 5-10 credits per research run
    */
@@ -291,39 +293,157 @@ export class AutonomousWorkflowEngine {
     // Get persona for topics (cached)
     const persona = this.cachedPersona!;
 
-    const topics = JSON.parse(persona.topics || '[]');
+    // Get recent posts (last 10) to check for duplicate topics
+    // Note: Using recent posts instead of date filter due to broken dates in DB
+    const recentPosts = await prisma.post.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+      select: {
+        content: true,
+      },
+    });
+
+    const personaTopics = JSON.parse(persona.topics || '[]');
+    console.log(`[Workflow] Recent posts checked: ${recentPosts.length}`);
+
+    // Extract keywords from persona topics (split by commas)
+    const topicKeywords = personaTopics.flatMap((topic: string) =>
+      topic.split(',').map((t: string) => t.trim().toLowerCase())
+    );
+
+    // Extract key technical terms from recent posts (2+ word phrases, capitalized terms)
+    const recentPostContent = recentPosts.map(p => p.content).join('\n');
+    const technicalTerms = recentPostContent.match(/\b[A-Z]{2,}[a-z]*\b|\b[a-z]+-[a-z]+\b|\b[A-Z][a-z]+\s+[A-Z][a-z]+\b/g) || [];
+    console.log(`[Workflow] DEBUG: Extracted technical terms: ${technicalTerms.join(', ') || 'none'}`);
+
+    const postedKeywords = [
+      ...topicKeywords.filter((keyword: string) =>
+        recentPosts.some(post => post.content.toLowerCase().includes(keyword))
+      ),
+      ...technicalTerms.map(t => t.toLowerCase())
+    ];
+
+    // Remove duplicates
+    const uniquePostedKeywords = [...new Set(postedKeywords)];
+
+    console.log(`[Workflow] Keywords to avoid: ${uniquePostedKeywords.join(', ') || 'none'}`);
+
+    // Hardcoded blacklist of topics to explicitly skip
+    const topicBlacklist = [
+      'xla',
+      'bf16',
+      'fp32',
+      'compiler',
+      'top-k',
+      'topk',
+      'approximate top',
+      'exact top',
+      'token drop',
+      'probability token',
+      'claude-progress',
+      'init.sh'
+    ];
+
+    // Combine posted keywords with blacklist
+    const allAvoidedKeywords = [...new Set([...uniquePostedKeywords, ...topicBlacklist])];
+
+    console.log(`[Workflow] Total keywords to avoid (including blacklist): ${allAvoidedKeywords.length}`);
+
+    // Check if a topic has any of its keywords already posted
+    const isTopicPosted = (topic: string): boolean => {
+      const keywords = topic.split(',').map(t => t.trim().toLowerCase());
+      return keywords.some((kw: string) => uniquePostedKeywords.includes(kw));
+    };
+
     const topicCount = this.input.topicCount || 5;
 
-    // Research each topic
-    for (const topic of topics.slice(0, topicCount)) {
-      console.log(`[Workflow] Researching topic: ${topic}`);
+    // Add variety: rotate daily through different aspects
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    const aspects = ['latest developments', 'breaking news', 'recent discussions', 'new techniques', 'emerging trends'];
 
-      // Check cache first
+    // Research each topic with rotating aspect, skipping already-posted topics
+    for (let i = 0; i < Math.min(personaTopics.length, topicCount); i++) {
+      const topic = personaTopics[i];
+
+      // Skip if any keyword from this topic was already posted today
+      if (isTopicPosted(topic)) {
+        console.log(`[Workflow] Skipping topic already posted today: ${topic}`);
+        continue;
+      }
+
+      const aspect = aspects[(dayOfYear + i) % aspects.length];
+      const variedTopic = `${topic} - ${aspect}`;
+      console.log(`[Workflow] Researching topic: ${topic} (aspect: ${aspect})`);
+
+      // Check cache first (using varied topic for cache key)
       const cached = await prisma.researchCache.findFirst({
         where: {
-          topic,
+          topic: variedTopic,
           expiresAt: { gte: new Date() },
         },
       });
 
       if (cached) {
-        console.log(`[Workflow] Using cached research for: ${topic}`);
+        console.log(`[Workflow] Using cached research for: ${variedTopic}`);
         this.researchResults.push({
-          topic,
+          topic: variedTopic,
           results: cached.results,
           cachedAt: cached.cachedAt,
         });
         continue;
       }
 
-      // Use SDK with Tavily/Perplexity for research
-      const today = new Date().toISOString().split('T')[0];
-      const researchPrompt = `TODAY IS ${today}. Research and provide CURRENT information about: ${topic}
+      // Detect if topic is about a GitHub repository
+      const isGitHubRepo = /github\.com|[\w-]+\/[\w-]+|repo|repository/i.test(topic) ||
+        /claude-code|anthropic|vercel|next\.js|openai|langchain|tensorflow|pytorch/i.test(topic);
+
+      let summary: string;
+
+      if (isGitHubRepo) {
+        // Use Context7 for GitHub repo documentation
+        console.log(`[Workflow] GitHub repo detected, using Context7 for documentation lookup`);
+        const today = new Date().toISOString().split('T')[0];
+        const docsPrompt = `TODAY IS ${today}. Research this GitHub repository or project: ${variedTopic}
+
+Find and provide:
+1. Latest documentation and API changes
+2. Recent releases, version updates, or breaking changes
+3. Current issues, discussions, or roadmap items
+4. Example usage patterns or best practices
+
+AVOID topics already covered: ${allAvoidedKeywords.length > 0 ? allAvoidedKeywords.join(', ') : 'none'}
+
+Use context7 tools to lookup official documentation. Focus on CURRENT and RECENT information.`;
+
+        console.log(`[Workflow] DEBUG: Context7 prompt length: ${docsPrompt.length}`);
+        console.log(`[Workflow] DEBUG: Avoiding keywords: ${allAvoidedKeywords.slice(0, 10).join(', ')}`);
+
+        summary = await runDocsQuery(docsPrompt);
+        console.log(`[Workflow] DEBUG: Research result length: ${summary.length}`);
+        console.log(`[Workflow] DEBUG: Research preview: ${summary.slice(0, 200)}...`);
+
+        // Filter: Skip research if it contains blacklisted keywords
+        const hasBlacklistedContent = allAvoidedKeywords.some((keyword: string) =>
+          summary.toLowerCase().includes(keyword.toLowerCase())
+        );
+        if (hasBlacklistedContent) {
+          console.log(`[Workflow] SKIPPING: Research contains blacklisted keywords`);
+          continue;
+        }
+      } else {
+        // Use Tavily/Perplexity for general web research
+        const today = new Date().toISOString().split('T')[0];
+        const researchPrompt = `TODAY IS ${today}. Research and provide CURRENT information about: ${variedTopic}
 
 Focus on:
 1. What's happening RIGHT NOW (today/this week)
 2. Latest news, breakthroughs, or discussions
 3. Why this matters RIGHT NOW
+
+AVOID topics already covered: ${allAvoidedKeywords.length > 0 ? allAvoidedKeywords.join(', ') : 'none'}
+If search results only cover these avoided topics, try a different angle or subtopic.
 
 IMPORTANT: You MUST use one of these MCP search tools for web search:
 - Use mcp__tavily__search for comprehensive web search with sources
@@ -334,17 +454,32 @@ Do NOT use the built-in WebSearch tool. Only use the MCP tools: mcp__tavily__sea
 
 Provide specific, current information with sources. Do NOT provide generic encyclopedia-style information.`;
 
-      const summary = await runResearchQuery(researchPrompt);
+        console.log(`[Workflow] DEBUG: Research prompt length: ${researchPrompt.length}`);
+        console.log(`[Workflow] DEBUG: Avoiding keywords: ${allAvoidedKeywords.slice(0, 10).join(', ')}`);
 
-      // Cache for 7 days
+        summary = await runResearchQuery(researchPrompt);
+        console.log(`[Workflow] DEBUG: Research result length: ${summary.length}`);
+        console.log(`[Workflow] DEBUG: Research preview: ${summary.slice(0, 200)}...`);
+
+        // Filter: Skip research if it contains blacklisted keywords
+        const hasBlacklistedContent = allAvoidedKeywords.some((keyword: string) =>
+          summary.toLowerCase().includes(keyword.toLowerCase())
+        );
+        if (hasBlacklistedContent) {
+          console.log(`[Workflow] SKIPPING: Research contains blacklisted keywords`);
+          continue;
+        }
+      }
+
+      // Cache for 7 days (using varied topic as cache key)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
       await prisma.researchCache.create({
         data: {
-          topic,
+          topic: variedTopic,
           results: summary,
-          source: 'mcp',
+          source: isGitHubRepo ? 'context7' : 'tavily/perplexity',
           cachedAt: new Date(),
           expiresAt,
         },
@@ -361,6 +496,11 @@ Provide specific, current information with sources. Do NOT provide generic encyc
     }
 
     console.log(`[Workflow] Research complete. ${this.researchResults.length} topics researched.`);
+
+    // If no valid research results (all filtered), abort workflow
+    if (this.researchResults.length === 0) {
+      throw new Error('No valid research results - all topics were filtered by blacklist');
+    }
   }
 
   /**
@@ -442,11 +582,17 @@ Do NOT provide multiple options. Choose the SINGLE BEST idea.`;
       const idea = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
       if (idea) {
-        this.synthesizedIdeas.push({
+        const synthesizedIdea = {
           topic: idea.topic || 'General',
           uniqueAngle: idea.uniqueAngle || '',
           suggestedHashtags: idea.suggestedHashtags || [],
-        });
+        };
+
+        console.log(`[Workflow] SYNTHESIS COMPLETE:`);
+        console.log(`[Workflow] - Topic: ${synthesizedIdea.topic}`);
+        console.log(`[Workflow] - Unique Angle: ${synthesizedIdea.uniqueAngle.slice(0, 150)}...`);
+
+        this.synthesizedIdeas.push(synthesizedIdea);
 
         // Save as Draft with SYNTHESIZED status
         await prisma.draft.create({
@@ -511,25 +657,28 @@ Persona Settings:
 - Use Emojis: ${persona.emojiUsage}
 - Use Hashtags: ${persona.hashtagUsage}
 
-CRITICAL: Write like a developer who just solved a specific problem and is sharing the solution.
+CRITICAL: Write helpful content for ${persona.name} audience. Provide value, insights, or useful information.
+
+DO NOT use first-person ("I", "we", "my", "just"). Use third-person objective tone.
+Focus on what readers should KNOW or DO, not personal experiences.
 
 REFERENCE TWEETS (study these patterns - all under 280 chars):
-✅ @trq212: "after the work is done I like to add: 'spin up a subagent to read the spec file and verify if work has been completed, have it give feedback if not and then address the feedback'"
+✅ "New in Claude Code: subagents can now read spec files and verify completion automatically. This reduces manual review time by ~40%."
 
-✅ @karpathy: "first 100% autonomous coast-to-coast drive on Tesla FSD V14.2! 2 days 20 hours, 2732 miles, zero interventions."
+✅ "XLA compiler tip: approximate top-k can fail with certain batch sizes. Use exact top-k for 2% efficiency cost but guaranteed correctness."
 
-✅ Anthropic engineering: "approximate top-k sometimes returned completely wrong results, but only for certain batch sizes. The December workaround had been inadvertently masking this problem."
+✅ "FastAPI 0.100+ introduces lifespan context for async resource cleanup. Replace @startup/@shutdown events with lifespan() function."
 
 KEY ELEMENTS (be concise to stay under 280):
-- ONE specific problem encountered
-- BRIEF mention of what was tried
-- The solution (file names, commands, patterns)
-- ONE insight about why it works
+- ONE clear insight or takeaway
+- Specific technical detail (version numbers, methods, patterns)
+- Actionable advice or important information
+- NO personal narrative or journey
 
 STYLE: ${persona.tone} ${persona.style}
-- Use first-person: "I found", "we discovered", "after X attempts"
-- Include technical details but keep them brief
-- Show the journey, but make every character count
+- Use third-person objective tone
+- Share knowledge, not experiences
+- Make every character count with useful information
 
 Write ONLY the tweet content. No explanation, no preamble.
 Remember: 280 characters MAX. Count carefully.`;
@@ -540,7 +689,7 @@ Remember: 280 characters MAX. Count carefully.`;
       const maxRetries = 3;
 
       while (retries < maxRetries) {
-        content = await runAnalysisQuery(draftingPrompt, `You are an expert social media writer. Write ${persona.tone} ${persona.style} posts. CRITICAL: Every post MUST be under 280 characters. URLs count as 23 characters. Target 200-260 characters. If you exceed 280, the post will be rejected. Do NOT use any tools - write the post content yourself based on the provided research and persona.`);
+        content = await runAnalysisQuery(draftingPrompt, `You are an expert social media writer for ${persona.name}. Write ${persona.tone} ${persona.style} posts in THIRD-PERSON. CRITICAL: NO first-person ("I", "we", "my"). Every post MUST be under 280 characters. URLs count as 23 characters. Target 200-260 characters. Provide helpful information, not personal stories.`);
 
         const charCount = content.length;
         console.log(`[Workflow] Draft attempt ${retries + 1}: ${charCount} characters (max: 280)`);
@@ -569,6 +718,10 @@ Remember: 280 characters MAX. Count carefully.`;
         personalVoice: true,
         valueAdd: 'Personal insights applied from persona',
       });
+
+      console.log(`[Workflow] DRAFT CREATED:`);
+      console.log(`[Workflow] - Content: ${content}`);
+      console.log(`[Workflow] - Character count: ${content.length}`);
 
       // Update draft with DRAFTED status
       await prisma.draft.create({

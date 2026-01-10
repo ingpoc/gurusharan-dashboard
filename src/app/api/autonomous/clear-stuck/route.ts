@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (stuckWorkflows.length > 0) {
-        clearedWorkflows = await prisma.workflowRun.updateMany({
+        await prisma.workflowRun.updateMany({
           where: {
             status: 'RUNNING',
             startedAt: {
