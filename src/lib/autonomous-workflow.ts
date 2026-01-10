@@ -72,6 +72,7 @@ export interface DraftedPost {
   uniqueAngle: string;
   personalVoice: boolean;
   valueAdd: string;
+  approved?: boolean;
 }
 
 export interface ReviewedPost {
@@ -298,7 +299,14 @@ Focus on:
 2. Latest news, breakthroughs, or discussions
 3. Why this matters RIGHT NOW
 
-Use web search tools to find current information. Do NOT provide generic encyclopedia-style information.`;
+IMPORTANT: You MUST use one of these MCP search tools for web search:
+- Use mcp__tavily__search for comprehensive web search with sources
+- Use mcp__perplexity__search for AI-powered search with reasoning
+- Use mcp__perplexity__reason for complex research requiring analysis
+
+Do NOT use the built-in WebSearch tool. Only use the MCP tools: mcp__tavily__search, mcp__perplexity__search, or mcp__perplexity__reason.
+
+Provide specific, current information with sources. Do NOT provide generic encyclopedia-style information.`;
 
       const summary = await runResearchQuery(researchPrompt);
 
@@ -609,28 +617,43 @@ CRITICAL CHECKLIST:
         const jsonMatch = review.match(/\{[\s\S]*?\}/);
         const reviewResult = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
+        console.log('[Workflow] Review result:', JSON.stringify(reviewResult));
+
         if (reviewResult) {
-          // Use suggested edits if not approved
-          const finalContent = reviewResult.approved ? draftedPost.content : reviewResult.suggestedEdits;
+          // Use suggested edits if not approved and provided
+          let finalContent = draftedPost.content;
+          if (!reviewResult.approved && reviewResult.suggestedEdits) {
+            finalContent = reviewResult.suggestedEdits;
+          }
 
           // Validate suggested edits length
-          const suggestedLength = finalContent.length;
+          const suggestedLength = finalContent?.length || 0;
           const lengthOk = suggestedLength <= 280;
 
-          this.reviewedPosts.push({
-            content: finalContent,
-            approved: reviewResult.approved && lengthOk,
-            issues: reviewResult.issues || [],
-            lengthOk,
-            hashtagsRelevant: reviewResult.hashtagsRelevant ?? true,
-          });
-
-          if (reviewResult.approved && lengthOk) {
-            console.log(`[Workflow] ✓ Post approved (${suggestedLength} chars)`);
-          } else if (!lengthOk) {
-            console.log(`[Workflow] ✗ Post rejected: Suggested edits still too long (${suggestedLength} chars)`);
+          // If no suggested edits provided and not approved, reject
+          if (!reviewResult.approved && !reviewResult.suggestedEdits) {
+            console.log(`[Workflow] ✗ Post rejected: ${reviewResult.issues?.join(', ') || 'No suggested edits provided'}`);
+            this.reviewedPosts.push({
+              content: draftedPost.content,
+              approved: false,
+              issues: reviewResult.issues || ['No suggested edits provided'],
+              lengthOk: draftedPost.content.length <= 280,
+              hashtagsRelevant: reviewResult.hashtagsRelevant ?? true,
+            });
           } else {
-            console.log(`[Workflow] ✗ Post rejected: ${reviewResult.issues.join(', ')}`);
+            this.reviewedPosts.push({
+              content: finalContent,
+              approved: (reviewResult.approved || !!reviewResult.suggestedEdits) && lengthOk,
+              issues: reviewResult.issues || [],
+              lengthOk,
+              hashtagsRelevant: reviewResult.hashtagsRelevant ?? true,
+            });
+
+            if (lengthOk) {
+              console.log(`[Workflow] ✓ Post approved (${suggestedLength} chars)`);
+            } else {
+              console.log(`[Workflow] ✗ Post rejected: Still too long (${suggestedLength} chars)`);
+            }
           }
         } else {
           // Fallback to basic validation
@@ -647,23 +670,34 @@ CRITICAL CHECKLIST:
         }
       } catch (error) {
         console.error('[Workflow] Failed to parse review response:', error);
-        // Fallback to basic validation
+        // Fallback: truncate if too long, approve if short enough
+        const content = draftedPost.content.length > 280
+          ? draftedPost.content.substring(0, 277) + '...'
+          : draftedPost.content;
         this.reviewedPosts.push({
-          content: draftedPost.content,
+          content,
           approved: true,
           issues: [],
-          lengthOk: true,
+          lengthOk: content.length <= 280,
           hashtagsRelevant: true,
         });
       }
     }
 
-    // Filter only approved posts for posting
-    this.draftedPosts = this.draftedPosts.filter((post) =>
-      this.reviewedPosts.find(
-        (review) => review.content === post.content && review.approved
-      )
-    );
+    // Update drafted posts with reviewed/suggested content and filter only approved
+    this.draftedPosts = this.draftedPosts
+      .map((post, index) => {
+        const review = this.reviewedPosts[index];
+        if (!review) return null;
+
+        // Update post content with reviewed/suggested version
+        return {
+          ...post,
+          content: review.content,
+          approved: review.approved,
+        };
+      })
+      .filter((post): post is NonNullable<typeof post> => post?.approved === true);
 
     console.log(`[Workflow] Review complete. ${this.draftedPosts.length} posts approved.`);
     await this.updateWorkflowRun();
